@@ -59,8 +59,9 @@ public class Board extends JFrame implements KeyListener {
 	private final JLabel menu3118 = new JLabel("-\t");
 	private final JLabel menu3119 = new JLabel("Back");
 	
-	private String icon = BASE_RESOURCE_PATH + "Objects\\Rock1.png"; //TODO change
+	private String icon = BASE_RESOURCE_PATH + "Icons\\Pawn.png"; //TODO change
 	private int menuButton = 1;
+	private PiecePage piecePage;
 	
     public Board() {
     	
@@ -308,9 +309,16 @@ public class Board extends JFrame implements KeyListener {
 		case 31: //Piecemaker - List
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
 			menuButton = 3119;
+			piecePage = new PiecePage(0, 15);
+			int mIndex = 0;
 			for (JLabel menuLabel : menuArray31) {
+				if (mIndex >= 3 && piecePage.getPieces().size() > mIndex - 3) {
+					Piece newPiece = piecePage.getPieces().get(mIndex - 3);
+					String newName = newPiece.getName();
+					menuLabel.setText("- " + newName);
+				}
+				mIndex++;
 				menuLabel.setVisible(true);
-				loadPieceList();
 			}
 			for (JLabel menuLabel : menuArray3) {
 				menuLabel.setVisible(false);
@@ -319,6 +327,11 @@ public class Board extends JFrame implements KeyListener {
 			break;
 		case 32: //Piecemaker - Create
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			menuButton = 3201;
+			//TODO put icon, etc.
+			for (JLabel menuLabel : menuArray3) {
+				menuLabel.setVisible(false);
+			}
 			//TODO 
 			menuSet();
 			break;
