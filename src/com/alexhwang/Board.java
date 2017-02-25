@@ -58,10 +58,32 @@ public class Board extends JFrame implements KeyListener {
 	private final JLabel menu3117 = new JLabel("-\t");
 	private final JLabel menu3118 = new JLabel("-\t");
 	private final JLabel menu3119 = new JLabel("Back");
+	private final ArrayList<JLabel> menuArray32 = new ArrayList<JLabel>();
+	private final JLabel menu3200 = new JLabel("Create");
+	private final JLabel menu3201 = new JLabel("Base");
+	private final JLabel menu3202 = new JLabel("Clear");
+	private final JLabel menu3203 = new JLabel("Set Movement");
+	private final JLabel menu3204 = new JLabel("Set Attack");
+	private final JLabel menu3205 = new JLabel("Set Both");
+	private final JLabel menu3206 = new JLabel("Set Back Range");
+	private final JLabel menu3207 = new JLabel("Set Forward Range");
+	private final JLabel menu3208 = new JLabel("Set Retribution");
+	private final JLabel menu3209 = new JLabel("Flags");
+	private final JLabel menu3210 = new JLabel("Promotion From");
+	private final JLabel menu3211 = new JLabel("Promotion To");
+	private final JLabel menu3212 = new JLabel("Icon");
+	private final JLabel menu3213 = new JLabel("Save");
+	private final JLabel menu3214 = new JLabel("Back");
 	
+	private ArrayList<Piece> pieceArray = new ArrayList<Piece>();
+	private ArrayList<JLabel> pieceIconArray = new ArrayList<JLabel>();
 	private String icon = BASE_RESOURCE_PATH + "Icons\\Pawn.png"; //TODO change
 	private int menuButton = 1;
 	private PiecePage piecePage;
+	private int pieceArraySize = 0;
+	private int mIndex = 0;
+	private int menuFlag = 0; //1: Piecemaker - Create - Base
+	private int creationFlag = 0; //1: Movement, 2: Attack, 3: Both, 4: Back Range, 5: Forward Range, 6: Retribution
 	
     public Board() {
     	
@@ -120,6 +142,34 @@ public class Board extends JFrame implements KeyListener {
     		menuPanel.setLayer(menuArray31.get(i), 1);
     		menuPanel.add(menuArray31.get(i));
     	}
+    	menuArray32.addAll(Arrays.asList(menu3200, menu3201, menu3202, menu3203, menu3204, menu3205, menu3206, menu3207, menu3208, menu3209, 
+    			menu3210, menu3211, menu3212, menu3213, menu3214));
+    	for (int i = 0; i < menuArray32.size(); i++) {
+    		if (i == 0) {
+    			menuArray32.get(i).setBounds(0, 15 + i * 40, 140, 25);
+    			menuArray32.get(i).setFont(new Font("Arial", Font.BOLD, 18));
+    			menuArray32.get(i).setForeground(Color.BLACK);
+    		}
+    		else
+    		{
+    			menuArray32.get(i).setBounds(0, 15 + i * 40, 140, 25);
+    			menuArray32.get(i).setFont(new Font("Arial", Font.BOLD, 15));
+    			menuArray32.get(i).setForeground(Color.GRAY);
+    		}
+    		menuArray32.get(i).setVisible(false);
+    		menuPanel.setLayer(menuArray32.get(i), 1);
+    		menuPanel.add(menuArray32.get(i));
+    	}
+    	
+    	mainPanel.addMouseListener(new MegaMouseAdapter(mainPanel) {
+    		public void mouseClicked(MouseEvent c) {
+    			//TODO generalize
+    			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
+    			int mouseX = c.getX();
+    			int mouseY = c.getY();
+    			mainPanel.colorSquare(creationFlag, mouseX, mouseY);
+    		}
+    	});
 
     	for (int i = 0; i < menuArray0.size(); i++) {
     		menuArray0.get(i).addMouseListener(new MegaMouseAdapter(1 + i) {
@@ -162,6 +212,24 @@ public class Board extends JFrame implements KeyListener {
     	    	public void mouseClicked(MouseEvent c) {
     	    		int buttonIndex = getSavedValue();
     	    		if (menuButton >= 3101 && menuButton <= 3119) {
+    	    			if (menuButton == buttonIndex) {
+    	    				menuPress();
+    	    			}
+    	    			else {
+    	    				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
+    	        			menuButton = buttonIndex;
+    	    			}
+    		   			menuSet();
+    	    		}
+    	    	}
+    	    });
+    	}
+
+    	for (int i = 1; i < menuArray32.size(); i++) {
+    		menuArray32.get(i).addMouseListener(new MegaMouseAdapter(3200 + i) {
+    	    	public void mouseClicked(MouseEvent c) {
+    	    		int buttonIndex = getSavedValue();
+    	    		if (menuButton >= 3201 && menuButton <= 3214) {
     	    			if (menuButton == buttonIndex) {
     	    				menuPress();
     	    			}
@@ -257,6 +325,18 @@ public class Board extends JFrame implements KeyListener {
     			}
     		}
     	}
+    	else if (menuButton >= 3201 && menuButton <= 3214) {
+    		for (int i = 1; i < menuArray32.size(); i++) {
+    			if (i == menuButton - 3200) {
+    				menuArray32.get(i).setFont(new Font("Arial", Font.BOLD, 15));
+    				menuArray32.get(i).setForeground(Color.BLACK);
+    			}
+    			else {
+    				menuArray32.get(i).setFont(new Font("Arial", Font.PLAIN, 15));
+    				menuArray32.get(i).setForeground(Color.GRAY);
+    			}
+    		}
+    	}
     }
     
     public void menuPress() {
@@ -310,7 +390,7 @@ public class Board extends JFrame implements KeyListener {
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
 			menuButton = 3119;
 			piecePage = new PiecePage(0, 15);
-			int mIndex = 0;
+			mIndex = 0;
 			for (JLabel menuLabel : menuArray31) {
 				if (mIndex >= 3 && piecePage.getPieces().size() > mIndex - 3) {
 					Piece newPiece = piecePage.getPieces().get(mIndex - 3);
@@ -327,8 +407,17 @@ public class Board extends JFrame implements KeyListener {
 			break;
 		case 32: //Piecemaker - Create
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
-			menuButton = 3201;
-			//TODO put icon, etc.
+			menuButton = 3214;
+			for (JLabel menuLabel : menuArray32) {
+				menuLabel.setVisible(true);
+			}
+			pieceArraySize = pieceArray.size();
+			pieceArray.add(new Piece("00000"));
+    		pieceIconArray.add(new JLabel(new ImageIcon(pieceArray.get(pieceArraySize).getIconPath())));
+	    	mainPanel.setLayer(pieceIconArray.get(pieceArraySize), 1);
+    		mainPanel.add(pieceIconArray.get(pieceArraySize));
+    		pieceIconArray.get(pieceArraySize).setBounds(TILE * 12, TILE * 12, TILE, TILE);
+			mainPanel.colorSquare(3, TILE * 12, TILE * 12);
 			for (JLabel menuLabel : menuArray3) {
 				menuLabel.setVisible(false);
 			}
@@ -377,8 +466,111 @@ public class Board extends JFrame implements KeyListener {
 			break;
 		case 3119: //Piecemaker - List - Back
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuBack.wav");
-			menuButton = 31;
+			if (menuFlag == 1) {
+				menuButton = 3201;
+			}
+			else {
+				menuButton = 31;
+			}
 			for (JLabel menuLabel : menuArray31) {
+				menuLabel.setVisible(false);
+			}
+			if (menuFlag == 1) {
+				for (JLabel menuLabel : menuArray32) {
+					menuLabel.setVisible(true);
+				}
+				menuFlag = 0;
+			}
+			else {
+				for (JLabel menuLabel : menuArray3) {
+					menuLabel.setVisible(true);
+				}
+			}
+			menuSet();
+			break;
+		case 3201: //Piecemaker - Create - Base
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			menuFlag = 1;
+			menuButton = 3119;
+			piecePage = new PiecePage(0, 15);
+			mIndex = 0;
+			for (JLabel menuLabel : menuArray31) {
+				if (mIndex >= 3 && piecePage.getPieces().size() > mIndex - 3) {
+					Piece newPiece = piecePage.getPieces().get(mIndex - 3);
+					String newName = newPiece.getName();
+					menuLabel.setText("- " + newName);
+				}
+				mIndex++;
+				menuLabel.setVisible(true);
+			}
+			for (JLabel menuLabel : menuArray32) {
+				menuLabel.setVisible(false);
+			}
+			menuSet();
+			break;
+		case 3202: //Piecemaker - Create - Clear
+			Object[] choice = {"Clear", "Don't clear"};
+			int n = JOptionPane.showOptionDialog(frame, "Are you sure you want to clear?", "Clear", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, choice, choice[1]);
+			if (n == JOptionPane.NO_OPTION) {
+				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuBack.wav");
+			}
+			else {
+				playSound(BASE_RESOURCE_PATH + "Sounds\\Error.wav");
+				creationFlag = 0;
+				//TODO clear, right click also
+				mainPanel.colorSquare(3, TILE * 12, TILE * 12);
+			}
+			break;
+		case 3203: //Piecemaker - Create - Set Movement
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			creationFlag = 1; //blue fill
+			break;
+		case 3204: //Piecemaker - Create - Set Attack
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			creationFlag = 2; //red fill
+			break;
+		case 3205: //Piecemaker - Create - Set Both
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			creationFlag = 3; //magenta fill
+			break;
+		case 3206: //Piecemaker - Create - Set Back Range
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			creationFlag = 4; //brown square
+			break;
+		case 3207: //Piecemaker - Create - Set Forward Range
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			creationFlag = 5; //brown cross
+			break;
+		case 3208: //Piecemaker - Create - Set Retribution
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			creationFlag = 6; //black x
+			break;
+		case 3209: //Piecemaker - Create - Flags
+			//TODO
+			break;
+		case 3210: //Piecemaker - Create - Promotion To
+			//TODO
+			break;
+		case 3211: //Piecemaker - Create - Promotion From
+			//TODO
+			break;
+		case 3212: //Piecemaker - Create - Icon
+			//TODO
+			break;
+		case 3213: //Piecemaker - Create - Save
+			//TODO
+			break;
+		case 3214: //Piecemaker - Create - Back
+			//TODO ask to save
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuBack.wav");
+			creationFlag = 0;
+			menuButton = 32;
+			pieceArraySize = pieceArray.size() - 1;
+	    	mainPanel.remove(pieceIconArray.get(pieceArraySize));
+	    	mainPanel.repaint();
+			pieceArray.remove(pieceArraySize);
+    		pieceIconArray.remove(pieceArraySize);
+			for (JLabel menuLabel : menuArray32) {
 				menuLabel.setVisible(false);
 			}
 			for (JLabel menuLabel : menuArray3) {

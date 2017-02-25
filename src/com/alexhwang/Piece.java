@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Piece {
+	static final String BASE_RESOURCE_PATH = "src\\resources\\";
+	
 	private int price = 0;
 	private String name = "";
 	private String move = ""; //1-10; A:oF, B:oB, C:oL, D:oR, E:dFL, F:dFR, G:dBL, H:dBR; +j:j;
@@ -31,9 +33,20 @@ public class Piece {
 			parsePiece(line);
 		}
 	}
+	
+	public Piece(final int id) {
+		String line = findPiece(String.format("%05d", id));
+		if (line.equals("NOT FOUND")) {
+			price = -1;
+		}
+		else {
+			parsePiece(line);
+		}
+	}
 
+	//TODO add "force ID" to file?
 	public String findPiece(final String id) {
-		final File pieces = new File("src\\resources\\InnerData\\Pieces.kg");
+		final File pieces = new File(BASE_RESOURCE_PATH + "InnerData\\Pieces.kg");
 		String idCheck = "00000";
 		String line;
 		Boolean found = false;
@@ -135,5 +148,9 @@ public class Piece {
 			return "Pawn"; //default icon string
 		}
 		return iconString;
+	}
+	
+	public String getIconPath() {
+		return BASE_RESOURCE_PATH + "Icons\\" + getIconString() + ".png";
 	}
 }
