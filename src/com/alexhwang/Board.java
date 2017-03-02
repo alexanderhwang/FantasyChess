@@ -162,18 +162,35 @@ public class Board extends JFrame implements KeyListener {
     	}
     	
     	mainPanel.addMouseListener(new MegaMouseAdapter(mainPanel) {
-    		public void mouseClicked(MouseEvent c) {
+    		/*public void mouseClicked(MouseEvent c) {
+    			if (creationFlag != 0) {
+        			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
+        			int mouseX = c.getX();
+        			int mouseY = c.getY();
+        			mainPanel.colorSquare(creationFlag, mouseX, mouseY);
+    			}
+    		}*/
+    		
+    		public void mousePressed(MouseEvent c) {
     			//TODO generalize
-    			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
-    			int mouseX = c.getX();
-    			int mouseY = c.getY();
-    			mainPanel.colorSquare(creationFlag, mouseX, mouseY);
+    			if (creationFlag != 0) {
+        			int mouseX = c.getX();
+        			int mouseY = c.getY();
+        			if (c.getButton() == MouseEvent.BUTTON1) {
+            			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
+            			mainPanel.colorSquare(creationFlag, mouseX, mouseY);
+        			}
+        			else if (c.getButton() == MouseEvent.BUTTON3) {
+            			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuBack.wav");
+            			mainPanel.clearSquare(creationFlag, mouseX, mouseY);
+        			}
+    			}
     		}
     	});
 
     	for (int i = 0; i < menuArray0.size(); i++) {
     		menuArray0.get(i).addMouseListener(new MegaMouseAdapter(1 + i) {
-    	    	public void mouseClicked(MouseEvent c) {
+    	    	public void mousePressed(MouseEvent c) {
     	    		int buttonIndex = getSavedValue();
     	    		if (menuButton >= 1 && menuButton <= 4) {
     	    			if (menuButton == buttonIndex) {
@@ -191,7 +208,7 @@ public class Board extends JFrame implements KeyListener {
 
     	for (int i = 1; i < menuArray3.size(); i++) {
     		menuArray3.get(i).addMouseListener(new MegaMouseAdapter(30 + i) {
-    	    	public void mouseClicked(MouseEvent c) {
+    	    	public void mousePressed(MouseEvent c) {
     	    		int buttonIndex = getSavedValue();
     	    		if (menuButton >= 31 && menuButton <= 33) {
     	    			if (menuButton == buttonIndex) {
@@ -209,7 +226,7 @@ public class Board extends JFrame implements KeyListener {
 
     	for (int i = 1; i < menuArray31.size(); i++) {
     		menuArray31.get(i).addMouseListener(new MegaMouseAdapter(3100 + i) {
-    	    	public void mouseClicked(MouseEvent c) {
+    	    	public void mousePressed(MouseEvent c) {
     	    		int buttonIndex = getSavedValue();
     	    		if (menuButton >= 3101 && menuButton <= 3119) {
     	    			if (menuButton == buttonIndex) {
@@ -227,7 +244,7 @@ public class Board extends JFrame implements KeyListener {
 
     	for (int i = 1; i < menuArray32.size(); i++) {
     		menuArray32.get(i).addMouseListener(new MegaMouseAdapter(3200 + i) {
-    	    	public void mouseClicked(MouseEvent c) {
+    	    	public void mousePressed(MouseEvent c) {
     	    		int buttonIndex = getSavedValue();
     	    		if (menuButton >= 3201 && menuButton <= 3214) {
     	    			if (menuButton == buttonIndex) {
@@ -517,7 +534,12 @@ public class Board extends JFrame implements KeyListener {
 			else {
 				playSound(BASE_RESOURCE_PATH + "Sounds\\Error.wav");
 				creationFlag = 0;
-				//TODO clear, right click also
+				mainPanel.clear();
+				pieceArray.add(new Piece("00000"));
+	    		pieceIconArray.add(new JLabel(new ImageIcon(pieceArray.get(pieceArraySize).getIconPath())));
+		    	mainPanel.setLayer(pieceIconArray.get(pieceArraySize), 1);
+	    		mainPanel.add(pieceIconArray.get(pieceArraySize));
+	    		pieceIconArray.get(pieceArraySize).setBounds(TILE * 12, TILE * 12, TILE, TILE);
 				mainPanel.colorSquare(3, TILE * 12, TILE * 12);
 			}
 			break;
@@ -561,7 +583,7 @@ public class Board extends JFrame implements KeyListener {
 			//TODO
 			break;
 		case 3214: //Piecemaker - Create - Back
-			//TODO ask to save
+			//TODO ask to save, clear
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuBack.wav");
 			creationFlag = 0;
 			menuButton = 32;

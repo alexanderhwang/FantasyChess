@@ -16,4 +16,19 @@ public class PairArrayList extends ArrayList {
 		}
 		return false;
 	}
+	
+	public void destroy(Pair b) {
+		for (int i = 0; i < this.size(); i++) {
+			if (((Pair) this.get(i)).getA() == b.getA() &&
+					((Pair) this.get(i)).getB() == b.getB()) {
+				this.remove(i);
+			}
+		}
+	}
+	
+	public void destroy(int y) {
+		if (this.size() >= y + 1) {
+			this.remove(y);
+		}
+	}
 }

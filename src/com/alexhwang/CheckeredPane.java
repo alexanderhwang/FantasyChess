@@ -38,6 +38,8 @@ public class CheckeredPane extends JLayeredPane {
 
          for (int i = offsetXL; i < (LIMIT / TILE) - offsetXR; i++) {
              for (int j = offsetYU; j < (LIMIT / TILE) - offsetYD; j++) {
+                 g.setColor(Color.WHITE);
+                 g.fillRect(i * TILE, j * TILE, TILE, TILE);
             	 if ((i % 2 == 0 && j % 2 == 1) || (i % 2 == 1 && j % 2 == 0)) {
                      g.setColor(dark);
                      g.fillRect(i * TILE, j * TILE, TILE, TILE);
@@ -132,8 +134,55 @@ public class CheckeredPane extends JLayeredPane {
 		 repaint();
 	 }
 	 
-	 public void clearSquare(int creationFlag, int x, int y) {
-		 //TODO
+	 public void clearSquare(int creationFlag, int oldX, int oldY) {
+		 int x = oldX / 32;
+		 int y = oldY / 32;
+		 Pair newPair = new Pair(x, y); //TODO fix
+		 switch (creationFlag) {
+		 case 1: //movement
+			 if (movementArray.has(newPair)) {
+				 movementArray.destroy(newPair);
+			 }
+			 break;
+		 case 2: //attack
+			 if (attackArray.has(newPair)) {
+				 attackArray.destroy(newPair);
+			 }
+			 break;
+		 case 3: //both
+			 if (movementArray.has(newPair)) {
+				 movementArray.destroy(newPair);
+			 }
+			 if (attackArray.has(newPair)) {
+				 attackArray.destroy(newPair);
+			 }
+			 break;
+		 case 4: //back range
+			 if (backRangeArray.has(newPair)) {
+				 backRangeArray.destroy(newPair);
+			 }
+			 break;
+		 case 5: //forward range
+			 if (forwardRangeArray.has(newPair)) {
+				 forwardRangeArray.destroy(newPair);
+			 }
+			 break;
+		 case 6: //retribution
+			 if (retributionArray.has(newPair)) {
+				 retributionArray.destroy(newPair);
+			 }
+			 break;
+		 }
+		 revalidate();
+		 repaint();
+	 }
+
+	 public void clear() {
+		 for (int i = 0; i < movementArray.size(); i++) {
+			 movementArray.remove(0);
+		 }
+		 revalidate();
+		 repaint();
 	 }
 	 
 	 public void setXL(int offset) {
