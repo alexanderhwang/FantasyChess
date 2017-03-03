@@ -18,17 +18,18 @@ public class CheckeredPane extends JLayeredPane {
 	private int offsetXR = 0;
 	private int offsetYU = 0;
 	private int offsetYD = 0;
+	private int arraySize = 0;
 	private Color dark = new Color(0, 0, 0, 32);
 	private Color light = new Color(255, 255, 255, 0);
 	private Color movement = new Color(0, 0, 255, 128);
 	private Color attack = new Color(255, 0, 0, 128);
 	private Color both = new Color(192, 0, 192, 192);
-	private Color range = new Color(192, 64, 0, 128);
+	private Color range = new Color(192, 192, 0, 192);
 	private Color retribution = new Color(0, 0, 0, 128);
 	private PairArrayList movementArray = new PairArrayList();
 	private PairArrayList attackArray = new PairArrayList();
-	private PairArrayList backRangeArray = new PairArrayList();
-	private PairArrayList forwardRangeArray = new PairArrayList();
+	private PairArrayList backRangeArray = new PairArrayList(); //applies to attack tiles (consequent downgrade)
+	private PairArrayList forwardRangeArray = new PairArrayList(); //applies to attack tiles (consequent upgrade)
 	private PairArrayList retributionArray = new PairArrayList();
 	
 	 @Override
@@ -129,7 +130,7 @@ public class CheckeredPane extends JLayeredPane {
 				 retributionArray.add(newPair);
 			 }
 			 break;
-		 }
+		 } //TODO check logic of 4 and 5, determine cost overall
 		 revalidate();
 		 repaint();
 	 }
@@ -178,8 +179,35 @@ public class CheckeredPane extends JLayeredPane {
 	 }
 
 	 public void clear() {
-		 for (int i = 0; i < movementArray.size(); i++) {
-			 movementArray.remove(0);
+		 arraySize = movementArray.size();
+		 if (arraySize > 0) {
+			 for (int i = 0; i < arraySize; i++) {
+				 movementArray.remove(0);
+			 }
+		 }
+		 arraySize = attackArray.size();
+		 if (arraySize > 0) {
+			 for (int i = 0; i < arraySize; i++) {
+				 attackArray.remove(0);
+			 }
+		 }
+		 arraySize = backRangeArray.size();
+		 if (arraySize > 0) {
+			 for (int i = 0; i < arraySize; i++) {
+				 backRangeArray.remove(0);
+			 }
+		 }
+		 arraySize = forwardRangeArray.size();
+		 if (arraySize > 0) {
+			 for (int i = 0; i < arraySize; i++) {
+				 forwardRangeArray.remove(0);
+			 }
+		 }
+		 arraySize = retributionArray.size();
+		 if (arraySize > 0) {
+			 for (int i = 0; i < arraySize; i++) {
+				 retributionArray.remove(0);
+			 }
 		 }
 		 revalidate();
 		 repaint();
