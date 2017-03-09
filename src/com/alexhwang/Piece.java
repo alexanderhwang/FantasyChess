@@ -19,7 +19,7 @@ public class Piece {
 	//RA:8-1; RI:8-2; RQ:8-3; SA:8-4; SI:8-5; SQ:8-6; TA:8-7; TI:9-1; TQ:9-2; UA:9-3; UI:9-4; UQ:9-5; VA:9-6; VI:9-7; VQ:9-8;
 	//WA:10-1; WI:10-2; WQ:10-3; XA:10-4; XI:10-5; XQ:10-6; YA:10-7; YI:10-8; YQ:10-9
 	private String attack = ""; //q:-, r:+, z:{}
-	private String flag = ""; //i, r
+	private String flag = ""; //t, s, i, n, r, j
 	private ArrayList<String> promotionTo = new ArrayList<String>();
 	private ArrayList<String> promotionFrom = new ArrayList<String>();
 	private String iconString = "";

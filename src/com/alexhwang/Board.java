@@ -14,10 +14,12 @@ import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 
 public class Board extends JFrame implements KeyListener {
@@ -112,13 +114,13 @@ public class Board extends JFrame implements KeyListener {
     	menuArray3.addAll(Arrays.asList(menu30, menu31, menu32, menu33));
     	for (int i = 0; i < menuArray3.size(); i++) {
     		if (i == 0) {
-    			menuArray3.get(i).setBounds(0, 15 + i * 40, 140, 25);
+    			menuArray3.get(i).setBounds(10, 15 + i * 40, 140, 25);
     			menuArray3.get(i).setFont(new Font("Arial", Font.BOLD, 18));
     			menuArray3.get(i).setForeground(Color.BLACK);
     		}
     		else
     		{
-    			menuArray3.get(i).setBounds(0, 15 + i * 40, 140, 25);
+    			menuArray3.get(i).setBounds(10, 15 + i * 40, 140, 25);
     			menuArray3.get(i).setFont(new Font("Arial", Font.BOLD, 15));
     			menuArray3.get(i).setForeground(Color.GRAY);
     		}
@@ -130,13 +132,13 @@ public class Board extends JFrame implements KeyListener {
     			menu3110, menu3111, menu3112, menu3113, menu3114, menu3115, menu3116, menu3117, menu3118, menu3119));
     	for (int i = 0; i < menuArray31.size(); i++) {
     		if (i == 0) {
-    			menuArray31.get(i).setBounds(0, 15 + i * 40, 140, 25);
+    			menuArray31.get(i).setBounds(10, 15 + i * 40, 140, 25);
     			menuArray31.get(i).setFont(new Font("Arial", Font.BOLD, 18));
     			menuArray31.get(i).setForeground(Color.BLACK);
     		}
     		else
     		{
-    			menuArray31.get(i).setBounds(0, 15 + i * 40, 140, 25);
+    			menuArray31.get(i).setBounds(10, 15 + i * 40, 140, 25);
     			menuArray31.get(i).setFont(new Font("Arial", Font.BOLD, 15));
     			menuArray31.get(i).setForeground(Color.GRAY);
     		}
@@ -148,13 +150,13 @@ public class Board extends JFrame implements KeyListener {
     			menu3210, menu3211, menu3212, menu3213, menu3214));
     	for (int i = 0; i < menuArray32.size(); i++) {
     		if (i == 0) {
-    			menuArray32.get(i).setBounds(0, 15 + i * 40, 140, 25);
+    			menuArray32.get(i).setBounds(10, 15 + i * 40, 140, 25);
     			menuArray32.get(i).setFont(new Font("Arial", Font.BOLD, 18));
     			menuArray32.get(i).setForeground(Color.BLACK);
     		}
     		else
     		{
-    			menuArray32.get(i).setBounds(0, 15 + i * 40, 140, 25);
+    			menuArray32.get(i).setBounds(10, 15 + i * 40, 140, 25);
     			menuArray32.get(i).setFont(new Font("Arial", Font.BOLD, 15));
     			menuArray32.get(i).setForeground(Color.GRAY);
     		}
@@ -198,13 +200,15 @@ public class Board extends JFrame implements KeyListener {
     	    	public void mousePressed(MouseEvent c) {
     	    		int buttonIndex = getSavedValue();
     	    		if (menuButton >= 1 && menuButton <= 4) {
-    	    			if (menuButton == buttonIndex) {
+    	    			/*if (menuButton == buttonIndex) {
     	    				menuPress();
     	    			}
     	    			else {
     	    				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
     	        			menuButton = buttonIndex;
-    	    			}
+    	    			}*/
+    	    			menuButton = buttonIndex;
+    	    			menuPress();
     		   			menuSet();
     	    		}
     	    	}
@@ -216,13 +220,15 @@ public class Board extends JFrame implements KeyListener {
     	    	public void mousePressed(MouseEvent c) {
     	    		int buttonIndex = getSavedValue();
     	    		if (menuButton >= 31 && menuButton <= 33) {
-    	    			if (menuButton == buttonIndex) {
+    	    			/*if (menuButton == buttonIndex) {
     	    				menuPress();
     	    			}
     	    			else {
     	    				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
     	        			menuButton = buttonIndex;
-    	    			}
+    	    			}*/
+    	    			menuButton = buttonIndex;
+    	    			menuPress();
     		   			menuSet();
     	    		}
     	    	}
@@ -234,13 +240,15 @@ public class Board extends JFrame implements KeyListener {
     	    	public void mousePressed(MouseEvent c) {
     	    		int buttonIndex = getSavedValue();
     	    		if (menuButton >= 3101 && menuButton <= 3119) {
-    	    			if (menuButton == buttonIndex) {
+    	    			/*if (menuButton == buttonIndex) {
     	    				menuPress();
     	    			}
     	    			else {
     	    				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
     	        			menuButton = buttonIndex;
-    	    			}
+    	    			}*/
+    	    			menuButton = buttonIndex;
+    	    			menuPress();
     		   			menuSet();
     	    		}
     	    	}
@@ -252,13 +260,15 @@ public class Board extends JFrame implements KeyListener {
     	    	public void mousePressed(MouseEvent c) {
     	    		int buttonIndex = getSavedValue();
     	    		if (menuButton >= 3201 && menuButton <= 3214) {
-    	    			if (menuButton == buttonIndex) {
+    	    			/*if (menuButton == buttonIndex) {
     	    				menuPress();
     	    			}
     	    			else {
     	    				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
     	        			menuButton = buttonIndex;
-    	    			}
+    	    			}*/
+    	    			menuButton = buttonIndex;
+    	    			menuPress();
     		   			menuSet();
     	    		}
     	    	}
@@ -470,7 +480,9 @@ public class Board extends JFrame implements KeyListener {
 	    	mainPanel.setLayer(pieceIconArray.get(pieceArraySize), 1);
     		mainPanel.add(pieceIconArray.get(pieceArraySize));
     		pieceIconArray.get(pieceArraySize).setBounds(TILE * 12, TILE * 12, TILE, TILE);
+			creationFlag = 3;
 			mainPanel.colorSquare(3, TILE * 12, TILE * 12);
+			creationFlag = 0;
 			for (JLabel menuLabel : menuArray3) {
 				menuLabel.setVisible(false);
 			}
@@ -608,7 +620,8 @@ public class Board extends JFrame implements KeyListener {
 			creationFlag = 6; //black x
 			break;
 		case 3209: //Piecemaker - Create - Flags
-			//TODO
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			mainPanel.setFlags();
 			break;
 		case 3210: //Piecemaker - Create - Promotion To
 			//TODO
