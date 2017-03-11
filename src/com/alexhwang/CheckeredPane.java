@@ -2,12 +2,14 @@ package com.alexhwang;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
@@ -27,6 +29,7 @@ public class CheckeredPane extends JLayeredPane {
 	private int offsetYU = 0;
 	private int offsetYD = 0;
 	private int arraySize = 0;
+	private int cost = 0;
 	private Color dark = new Color(0, 0, 0, 32);
 	private Color light = new Color(232, 232, 232, 0);
 	private Color movement = new Color(0, 0, 255, 128);
@@ -34,13 +37,36 @@ public class CheckeredPane extends JLayeredPane {
 	private Color both = new Color(192, 0, 192, 192);
 	private Color range = new Color(192, 192, 0, 192);
 	private Color retribution = new Color(0, 0, 0, 128);
+	private Color error = new Color(0, 255, 0, 255);
 	private JLabel flagTransport = new JLabel(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\FlagTransport.png"));
+	private JLabel flagShield = new JLabel(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\FlagShield.png"));
+	private JLabel flagInvisible = new JLabel(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\FlagInvisible.png"));
+	private JLabel flagNecromancer = new JLabel(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\FlagNecromancer.png"));
+	private JLabel flagRoyal = new JLabel(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\FlagRoyal.png"));
+	private JLabel flagJoker = new JLabel(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\FlagJoker.png"));
+	private JLabel costDisplay = new JLabel("Cost: 0");
+	private final ArrayList<JLabel> flagIcons = new ArrayList<JLabel>(Arrays.asList(flagTransport, flagShield, flagInvisible, flagNecromancer, flagRoyal, flagJoker));
 	private PairArrayList movementArray = new PairArrayList();
 	private PairArrayList attackArray = new PairArrayList();
 	private PairArrayList backRangeArray = new PairArrayList(); //applies to attack tiles (consequent downgrade)
 	private PairArrayList forwardRangeArray = new PairArrayList(); //applies to attack tiles (consequent upgrade)
 	private PairArrayList retributionArray = new PairArrayList();
+	private PairArrayList errorArray = new PairArrayList();
 	private ArrayList<Boolean> flagArray = new ArrayList<Boolean>(); //t, s, i, n, r, j
+	
+	public CheckeredPane() {
+		for (int i = 0; i < flagIcons.size(); i++) {
+			this.setLayer(flagIcons.get(i), 1);
+			this.add(flagIcons.get(i));
+			flagIcons.get(i).setBounds((7 + (2 * i)) * TILE, 23 * TILE, TILE, TILE);
+			flagIcons.get(i).setVisible(false);
+		}
+		this.setLayer(costDisplay, 1);
+		this.add(costDisplay);
+		costDisplay.setFont(new Font("Arial", Font.BOLD, 24));
+		costDisplay.setBounds((int) (10.5 * TILE), TILE, 6 * TILE, TILE);
+		costDisplay.setVisible(false);
+	}
 	
 	 @Override
      protected void paintComponent(Graphics g) {
@@ -100,11 +126,15 @@ public class CheckeredPane extends JLayeredPane {
         	 g2.draw(new Line2D.Double(pair.getA() * TILE, pair.getB() * TILE, (pair.getA() + 1) * TILE, (pair.getB() + 1) * TILE));
         	 g2.draw(new Line2D.Double(pair.getA() * TILE, (pair.getB() + 1) * TILE, (pair.getA() + 1) * TILE, pair.getB() * TILE));
          }
+    	 g.setColor(error);
+         for (Pair pair : (ArrayList<Pair>) errorArray) {
+    		g.fillRect(pair.getA() * TILE, pair.getB() * TILE, TILE, TILE);
+         }
 	 }
 	 
 	 public void colorSquare(int creationFlag, int oldX, int oldY) {
-		 int x = oldX / 32;
-		 int y = oldY / 32;
+		 int x = oldX / TILE;
+		 int y = oldY / TILE;
 		 Pair newPair = new Pair(x, y);
 		 switch (creationFlag) {
 		 case 1: //movement
@@ -127,6 +157,8 @@ public class CheckeredPane extends JLayeredPane {
 			 break;
 		 case 4: //back range
 			 if (!backRangeArray.has(newPair)) {
+				 //TODO determine allowance
+				 checkBackRange(newPair);
 				 backRangeArray.add(newPair);
 			 }
 			 break;
@@ -141,8 +173,7 @@ public class CheckeredPane extends JLayeredPane {
 			 }
 			 break;
 		 } //TODO check logic of 4 and 5, determine cost overall
-		 revalidate();
-		 repaint();
+		 calculateCost();
 	 }
 	 
 	 public void clearSquare(int creationFlag, int oldX, int oldY) {
@@ -184,8 +215,7 @@ public class CheckeredPane extends JLayeredPane {
 			 }
 			 break;
 		 }
-		 revalidate();
-		 repaint();
+		 calculateCost();
 	 }
 
 	 public void clear() {
@@ -219,6 +249,14 @@ public class CheckeredPane extends JLayeredPane {
 				 retributionArray.remove(0);
 			 }
 		 }
+		 for (int j = 0; j < flagArray.size(); j++) {
+			 flagArray.set(j, false);
+		 }
+		 for (int k = 0; k < flagIcons.size(); k++) {
+			 flagIcons.get(k).setVisible(false);
+		 }
+		 cost = 0;
+		 costDisplay.setVisible(false);
 		 revalidate();
 		 repaint();
 	 }
@@ -240,29 +278,204 @@ public class CheckeredPane extends JLayeredPane {
 		 for (int j = 0; j < flagArray.size(); j++) {
 			 flagArray.set(j, ((JCheckBox) flags.getComponent(j)).isSelected()); //TODO determine costs
 		 }
-		 if (flagArray.get(0)) {
-             //g.fillRect(7 * TILE, 23 * TILE, TILE, TILE);
-	    	 this.setLayer(flagTransport, 1);
-    		 this.add(flagTransport);
-    		 flagTransport.setBounds(7 * TILE, 23 * TILE, TILE, TILE);
-         }
-         if (flagArray.get(1)) {
-             //g.fillRect(9 * TILE, 23 * TILE, TILE, TILE);
-         }
-         if (flagArray.get(2)) {
-             //g.fillRect(11 * TILE, 23 * TILE, TILE, TILE);
-         }
-         if (flagArray.get(3)) {
-             //g.fillRect(13 * TILE, 23 * TILE, TILE, TILE);
-         }
-         if (flagArray.get(4)) {
-             //g.fillRect(15 * TILE, 23 * TILE, TILE, TILE);
-         }
-         if (flagArray.get(5)) {
-             //g.fillRect(17 * TILE, 23 * TILE, TILE, TILE);
-         }
+		 for (int k = 0; k < flagIcons.size(); k++) {
+			 flagIcons.get(k).setVisible(flagArray.get(k));
+		 }
+		 calculateCost();
+	 }
+	 
+	 public boolean checkBackRange(Pair pair) { //must be one per possible direction (n, s, e, w, ne, nw, se, sw/ 2-1/ 3-1/ 3-2/ 4-1/ 4-3/ 5-1/ 5-2/ 5-3/ 5-4)
+		 //TODO
+		 return true;
+	 }
+	 
+	 public void calculateCost() {
+		 cost = 0;
+		 for (int i = 0; i < movementArray.size(); i++) {
+			 int x = ((Pair) movementArray.get(i)).getA();
+			 int y = ((Pair) movementArray.get(i)).getB();
+			 genericMath(i, x, y);
+		 }
+		 for (int i = 0; i < attackArray.size(); i++) {
+			 int x = ((Pair) attackArray.get(i)).getA();
+			 int y = ((Pair) attackArray.get(i)).getB();
+			 genericMath(i, x, y);
+		 }
+		 costDisplay.setText("Cost: " + cost);
+		 costDisplay.setVisible(true);
 		 revalidate();
 		 repaint();
+	 }
+	 
+	 public void genericMath(int i, int x, int y) {
+		//relative value = abs(v - 12)
+		 //value list o: 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000
+		 if (Math.abs(x - 12) == 0) {
+			 cost += (Math.abs(y - 12)) * 100;
+		 }
+		 else if (Math.abs(y - 12) == 0) {
+			 cost += (Math.abs(x - 12)) * 100;
+		 }
+		 //value list d: 60, 120, 180, 240, 300, 360, 420, 480, 540, 600
+		 else if (Math.abs(x - 12) == Math.abs(y - 12)) {
+			 cost += (Math.abs(x - 12)) * 60;
+		 }
+		 //value list 2-1: 160
+		 else if (Math.abs(x - 12) == 2 * Math.abs(y - 12)) {
+			 cost += (Math.abs(y - 12)) * 160;
+		 }
+		 else if (Math.abs(y - 12) == 2 * Math.abs(x - 12)) {
+			 cost += (Math.abs(x - 12)) * 160;
+		 }
+		 //value list 3-1: 260
+		 else if (Math.abs(x - 12) == 3 * Math.abs(y - 12)) {
+			 cost += (Math.abs(y - 12)) * 260;
+		 }
+		 else if (Math.abs(y - 12) == 3 * Math.abs(x - 12)) {
+			 cost += (Math.abs(x - 12)) * 260;
+		 }
+		 //value list 3-2: 220
+		 else if (2 * Math.abs(x - 12) == 3 * Math.abs(y - 12)) {
+			 cost += (Math.abs(y - 12)) * 110;
+		 }
+		 else if (2 * Math.abs(y - 12) == 3 * Math.abs(x - 12)) {
+			 cost += (Math.abs(x - 12)) * 110;
+		 }
+		 //value list 4-1: 360
+		 else if (Math.abs(x - 12) == 4 * Math.abs(y - 12)) {
+			 cost += (Math.abs(y - 12)) * 360;
+		 }
+		 else if (Math.abs(y - 12) == 4 * Math.abs(x - 12)) {
+			 cost += (Math.abs(x - 12)) * 360;
+		 }
+		 //value list 4-3: 280
+		 else if (3 * Math.abs(x - 12) == 4 * Math.abs(y - 12)) {
+			 cost += (Math.abs(x - 12)) * 70;
+		 }
+		 else if (3 * Math.abs(y - 12) == 4 * Math.abs(x - 12)) {
+			 cost += (Math.abs(y - 12)) * 70;
+		 }
+		 //value list 5-1: 460
+		 else if (Math.abs(x - 12) == 5 * Math.abs(y - 12)) {
+			 cost += (Math.abs(y - 12)) * 460;
+		 }
+		 else if (Math.abs(y - 12) == 5 * Math.abs(x - 12)) {
+			 cost += (Math.abs(x - 12)) * 460;
+		 }
+		 //value list 5-2: 420
+		 else if (2 * Math.abs(x - 12) == 5 * Math.abs(y - 12)) {
+			 cost += (Math.abs(y - 12)) * 210;
+		 }
+		 else if (2 * Math.abs(y - 12) == 5 * Math.abs(x - 12)) {
+			 cost += (Math.abs(x - 12)) * 210;
+		 }
+		 //value list 5-3: 380
+		 else if (3 * Math.abs(x - 12) == 5 * Math.abs(y - 12)) {
+			 cost += (Math.abs(x - 12)) * 76;
+		 }
+		 else if (3 * Math.abs(y - 12) == 5 * Math.abs(x - 12)) {
+			 cost += (Math.abs(y - 12)) * 76;
+		 }
+		 //value list 5-4: 340
+		 else if (4 * Math.abs(x - 12) == 5 * Math.abs(y - 12)) {
+			 cost += (Math.abs(y - 12)) * 85;
+		 }
+		 else if (4 * Math.abs(y - 12) == 5 * Math.abs(x - 12)) {
+			 cost += (Math.abs(x - 12)) * 85;
+		 }
+		 //value list 6-1: 560
+		 else if ((Math.abs(x - 12) == 6 * Math.abs(y - 12)) || (Math.abs(y - 12) == 6 * Math.abs(x - 12))) {
+			 cost += 560;
+		 }
+		 //value list 6-5: 400
+		 else if ((5 * Math.abs(x - 12) == 6 * Math.abs(y - 12)) || (5 * Math.abs(y - 12) == 6 * Math.abs(x - 12))) {
+			 cost += 400;
+		 }
+		 //value list 7-1: 660
+		 else if ((Math.abs(x - 12) == 7 * Math.abs(y - 12)) || (Math.abs(y - 12) == 7 * Math.abs(x - 12))) {
+			 cost += 660;
+		 }
+		 //value list 7-2: 620
+		 else if ((2 * Math.abs(x - 12) == 7 * Math.abs(y - 12)) || (2 * Math.abs(y - 12) == 7 * Math.abs(x - 12))) {
+			 cost += 620;
+		 }
+		 //value list 7-3: 580
+		 else if ((3 * Math.abs(x - 12) == 7 * Math.abs(y - 12)) || (3 * Math.abs(y - 12) == 7 * Math.abs(x - 12))) {
+			 cost += 580;
+		 }
+		 //value list 7-4: 540
+		 else if ((4 * Math.abs(x - 12) == 7 * Math.abs(y - 12)) || (4 * Math.abs(y - 12) == 7 * Math.abs(x - 12))) {
+			 cost += 540;
+		 }
+		 //value list 7-5: 500
+		 else if ((5 * Math.abs(x - 12) == 7 * Math.abs(y - 12)) || (5 * Math.abs(y - 12) == 7 * Math.abs(x - 12))) {
+			 cost += 500;
+		 }
+		 //value list 7-6: 460
+		 else if ((6 * Math.abs(x - 12) == 7 * Math.abs(y - 12)) || (6 * Math.abs(y - 12) == 7 * Math.abs(x - 12))) {
+			 cost += 460;
+		 }
+		 //value list 8-1: 760
+		 else if ((Math.abs(x - 12) == 8 * Math.abs(y - 12)) || (Math.abs(y - 12) == 8 * Math.abs(x - 12))) {
+			 cost += 760;
+		 }
+		 //value list 8-3: 680
+		 else if ((3 * Math.abs(x - 12) == 8 * Math.abs(y - 12)) || (3 * Math.abs(y - 12) == 8 * Math.abs(x - 12))) {
+			 cost += 680;
+		 }
+		 //value list 8-5: 600
+		 else if ((5 * Math.abs(x - 12) == 8 * Math.abs(y - 12)) || (5 * Math.abs(y - 12) == 8 * Math.abs(x - 12))) {
+			 cost += 600;
+		 }
+		 //value list 8-7: 520
+		 else if ((7 * Math.abs(x - 12) == 8 * Math.abs(y - 12)) || (7 * Math.abs(y - 12) == 8 * Math.abs(x - 12))) {
+			 cost += 520;
+		 }
+		 //value list 9-1: 860
+		 else if ((Math.abs(x - 12) == 9 * Math.abs(y - 12)) || (Math.abs(y - 12) == 9 * Math.abs(x - 12))) {
+			 cost += 860;
+		 }
+		 //value list 9-2: 820
+		 else if ((2 * Math.abs(x - 12) == 9 * Math.abs(y - 12)) || (2 * Math.abs(y - 12) == 9 * Math.abs(x - 12))) {
+			 cost += 820;
+		 }
+		 //value list 9-4: 740
+		 else if ((4 * Math.abs(x - 12) == 9 * Math.abs(y - 12)) || (4 * Math.abs(y - 12) == 9 * Math.abs(x - 12))) {
+			 cost += 740;
+		 }
+		 //value list 9-5: 700
+		 else if ((5 * Math.abs(x - 12) == 9 * Math.abs(y - 12)) || (5 * Math.abs(y - 12) == 9 * Math.abs(x - 12))) {
+			 cost += 700;
+		 }
+		 //value list 9-7: 620
+		 else if ((7 * Math.abs(x - 12) == 9 * Math.abs(y - 12)) || (7 * Math.abs(y - 12) == 9 * Math.abs(x - 12))) {
+			 cost += 620;
+		 }
+		 //value list 9-8: 580
+		 else if ((8 * Math.abs(x - 12) == 9 * Math.abs(y - 12)) || (8 * Math.abs(y - 12) == 9 * Math.abs(x - 12))) {
+			 cost += 580;
+		 }
+		 //value list 10-1: 960
+		 else if ((Math.abs(x - 12) == 10 * Math.abs(y - 12)) || (Math.abs(y - 12) == 10 * Math.abs(x - 12))) {
+			 cost += 960;
+		 }
+		 //value list 10-3: 880
+		 else if ((3 * Math.abs(x - 12) == 10 * Math.abs(y - 12)) || (3 * Math.abs(y - 12) == 10 * Math.abs(x - 12))) {
+			 cost += 880;
+		 }
+		 //value list 10-7: 720
+		 else if ((7 * Math.abs(x - 12) == 10 * Math.abs(y - 12)) || (7 * Math.abs(y - 12) == 10 * Math.abs(x - 12))) {
+			 cost += 720;
+		 }
+		 //value list 10-9: 640
+		 else if ((9 * Math.abs(x - 12) == 10 * Math.abs(y - 12)) || (9 * Math.abs(y - 12) == 10 * Math.abs(x - 12))) {
+			 cost += 640;
+		 }
+		 else {
+			 if (!errorArray.has((Pair) movementArray.get(i))) {
+				 errorArray.add((Pair) movementArray.get(i));
+			 }
+		 }
 	 }
 	 
 	 public void setXL(int offset) {

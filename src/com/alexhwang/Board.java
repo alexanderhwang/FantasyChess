@@ -622,6 +622,7 @@ public class Board extends JFrame implements KeyListener {
 		case 3209: //Piecemaker - Create - Flags
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
 			mainPanel.setFlags();
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
 			break;
 		case 3210: //Piecemaker - Create - Promotion To
 			//TODO
@@ -633,6 +634,9 @@ public class Board extends JFrame implements KeyListener {
 			//TODO
 			break;
 		case 3213: //Piecemaker - Create - Save
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			
+			playSound(BASE_RESOURCE_PATH + "Sounds\\Save.wav");
 			//TODO
 			break;
 		case 3214: //Piecemaker - Create - Back
