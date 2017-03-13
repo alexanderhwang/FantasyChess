@@ -29,7 +29,7 @@ public class CheckeredPane extends JLayeredPane {
 	private int offsetYU = 0;
 	private int offsetYD = 0;
 	private int arraySize = 0;
-	private int cost = 0;
+	private int totalCost = 0;
 	private Color dark = new Color(0, 0, 0, 32);
 	private Color light = new Color(232, 232, 232, 0);
 	private Color movement = new Color(0, 0, 255, 128);
@@ -157,8 +157,7 @@ public class CheckeredPane extends JLayeredPane {
 			 break;
 		 case 4: //back range
 			 if (!backRangeArray.has(newPair)) {
-				 //TODO determine allowance
-				 checkBackRange(newPair);
+				 checkForBackRangeConflict(newPair);
 				 backRangeArray.add(newPair);
 			 }
 			 break;
@@ -255,7 +254,7 @@ public class CheckeredPane extends JLayeredPane {
 		 for (int k = 0; k < flagIcons.size(); k++) {
 			 flagIcons.get(k).setVisible(false);
 		 }
-		 cost = 0;
+		 totalCost = 0;
 		 costDisplay.setVisible(false);
 		 revalidate();
 		 repaint();
@@ -284,30 +283,50 @@ public class CheckeredPane extends JLayeredPane {
 		 calculateCost();
 	 }
 	 
-	 public boolean checkBackRange(Pair pair) { //must be one per possible direction (n, s, e, w, ne, nw, se, sw/ 2-1/ 3-1/ 3-2/ 4-1/ 4-3/ 5-1/ 5-2/ 5-3/ 5-4)
-		 //TODO
-		 return true;
+	 public boolean checkForBackRangeConflict(Pair pair) { 
+		 for (int i = 0; i < backRangeArray.size(); i++) {
+			 int x = ((Pair) backRangeArray.get(i)).getA();
+			 int y = ((Pair) backRangeArray.get(i)).getB();
+			 if (!noConflictCheck(x, y, pair.getA(), pair.getB())) {
+				 backRangeArray.remove(i);
+				 return true;
+			 }
+		 }
+		 return false;
 	 }
 	 
 	 public void calculateCost() {
-		 cost = 0;
+		 totalCost = 0;
 		 for (int i = 0; i < movementArray.size(); i++) {
 			 int x = ((Pair) movementArray.get(i)).getA();
 			 int y = ((Pair) movementArray.get(i)).getB();
-			 genericMath(i, x, y);
+			 totalCost += genericMath(i, x, y);
 		 }
 		 for (int i = 0; i < attackArray.size(); i++) {
 			 int x = ((Pair) attackArray.get(i)).getA();
 			 int y = ((Pair) attackArray.get(i)).getB();
-			 genericMath(i, x, y);
+			 totalCost += genericMath(i, x, y);
 		 }
-		 costDisplay.setText("Cost: " + cost);
+		 costDisplay.setText("Cost: " + totalCost);
 		 costDisplay.setVisible(true);
 		 revalidate();
 		 repaint();
 	 }
 	 
-	 public void genericMath(int i, int x, int y) {
+	 public boolean noConflictCheck(int x1, int y1, int x2, int y2) { //n, s, e, w, ne, nw, se, sw/ 2-1/ 3-1/ 3-2/ 4-1/ 4-3/ 5-1/ 5-2/ 5-3/ 5-4
+		 if ( ((x1 - 12 == 0) && (x2 - 12 == 0) && ((y1 - 12 > 0) && (y2 - 12 > 0) || (y1 - 12 < 0) && (y2 - 12 < 0))) || //n,s
+				 ((y1 - 12 == 0) && (y2 - 12 == 0) && ((x1 - 12 > 0) && (x2 - 12 > 0) || (x1 - 12 < 0) && (x2 - 12 < 0))) || //e,w
+				 //((x1 == y1) && (x2 == y2) && (x1 / Math.abs(x1) == x2 / Math.abs(x2)) && (y1 / Math.abs(y1) == y2 / Math.abs(y2))) || //ne,nw,se,sw
+				 ((x1 - 12 != 0 && x2 - 12 != 0 && y1 - 12 != 0 && y2 - 12 != 0) && 
+						 ((double) (x1 - 12) / (double) (y1 - 12) == (double) (x2 - 12) / (double) (y2 - 12)) && 
+						 ((x1 - 12) / Math.abs(x1 - 12) == (x2 - 12) / Math.abs(x2 - 12)) && ((y1 - 12) / Math.abs(y1 - 12) == (y2 - 12) / Math.abs(y2 - 12))) ) { //etc. 
+			 return false;
+		 }
+		 return true;
+	 }
+	 
+	 public int genericMath(int i, int x, int y) {
+		 int cost = 0;
 		//relative value = abs(v - 12)
 		 //value list o: 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000
 		 if (Math.abs(x - 12) == 0) {
@@ -476,6 +495,7 @@ public class CheckeredPane extends JLayeredPane {
 				 errorArray.add((Pair) movementArray.get(i));
 			 }
 		 }
+		 return cost;
 	 }
 	 
 	 public void setXL(int offset) {
