@@ -31,4 +31,12 @@ public class PairArrayList extends ArrayList {
 			this.remove(y);
 		}
 	}
+	
+	public String toText() {
+		String returnText = "";
+		for (int i = 0; i < this.size(); i++) {
+			returnText += ((Pair) this.get(i)).getA() + "," + ((Pair) this.get(i)).getB() + " ";
+		}
+		return returnText;
+	}
 }

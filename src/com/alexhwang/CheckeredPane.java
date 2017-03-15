@@ -8,8 +8,20 @@ import java.awt.Graphics2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
@@ -30,6 +42,8 @@ public class CheckeredPane extends JLayeredPane {
 	private int offsetYD = 0;
 	private int arraySize = 0;
 	private int totalCost = 0;
+	private String name = "";
+	private String iconName = "";
 	private Color dark = new Color(0, 0, 0, 32);
 	private Color light = new Color(232, 232, 232, 0);
 	private Color movement = new Color(0, 0, 255, 128);
@@ -45,14 +59,16 @@ public class CheckeredPane extends JLayeredPane {
 	private JLabel flagRoyal = new JLabel(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\FlagRoyal.png"));
 	private JLabel flagJoker = new JLabel(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\FlagJoker.png"));
 	private JLabel costDisplay = new JLabel("Cost: 0");
-	private final ArrayList<JLabel> flagIcons = new ArrayList<JLabel>(Arrays.asList(flagTransport, flagShield, flagInvisible, flagNecromancer, flagRoyal, flagJoker));
+	private ArrayList<JLabel> flagIcons = new ArrayList<JLabel>(Arrays.asList(flagTransport, flagShield, flagInvisible, flagNecromancer, flagRoyal, flagJoker));
 	private PairArrayList movementArray = new PairArrayList();
 	private PairArrayList attackArray = new PairArrayList();
-	private PairArrayList backRangeArray = new PairArrayList(); //applies to attack tiles (consequent downgrade)
-	private PairArrayList forwardRangeArray = new PairArrayList(); //applies to attack tiles (consequent upgrade)
+	private PairArrayList backRangeArray = new PairArrayList(); //applies to position (consequent downgrade)
+	private PairArrayList forwardRangeArray = new PairArrayList(); //applies to position (consequent upgrade)
 	private PairArrayList retributionArray = new PairArrayList();
 	private PairArrayList errorArray = new PairArrayList();
 	private ArrayList<Boolean> flagArray = new ArrayList<Boolean>(); //t, s, i, n, r, j
+	private ArrayList<String> promotionFromArray = new ArrayList<String>();
+	private ArrayList<String> promotionToArray = new ArrayList<String>();
 	
 	public CheckeredPane() {
 		for (int i = 0; i < flagIcons.size(); i++) {
@@ -144,6 +160,7 @@ public class CheckeredPane extends JLayeredPane {
 			 break;
 		 case 2: //attack
 			 if (!attackArray.has(newPair)) {
+				 checkForAttackConflict(newPair);
 				 attackArray.add(newPair);
 			 }
 			 break;
@@ -157,8 +174,10 @@ public class CheckeredPane extends JLayeredPane {
 			 break;
 		 case 4: //back range
 			 if (!backRangeArray.has(newPair)) {
-				 checkForBackRangeConflict(newPair);
-				 backRangeArray.add(newPair);
+				 if (checkForBackRangeAllowance(newPair)) {
+					 checkForBackRangeConflict(newPair);
+					 backRangeArray.add(newPair);
+				 }
 			 }
 			 break;
 		 case 5: //forward range
@@ -168,10 +187,11 @@ public class CheckeredPane extends JLayeredPane {
 			 break;
 		 case 6: //retribution
 			 if (!retributionArray.has(newPair)) {
+				 checkForRetributionConflict(newPair);
 				 retributionArray.add(newPair);
 			 }
 			 break;
-		 } //TODO check logic of 4 and 5, determine cost overall
+		 } 
 		 calculateCost();
 	 }
 	 
@@ -283,12 +303,55 @@ public class CheckeredPane extends JLayeredPane {
 		 calculateCost();
 	 }
 	 
+	 public boolean checkForBackRangeAllowance(Pair pair) {
+		 boolean allowed = false;
+		 for (int i = 0; i < attackArray.size(); i++) {
+			 int x = (-1 * (((Pair) attackArray.get(i)).getA() - 12)) + 12;
+			 int y = (-1 * (((Pair) attackArray.get(i)).getB() - 12)) + 12;
+			 if (!noConflictCheck(x, y, pair.getA(), pair.getB())) {
+				 if (relativePositionComparison(x, y, pair.getA(), pair.getB()) == 0) {
+					 return false;
+				 }
+				 else if (relativePositionComparison(x, y, pair.getA(), pair.getB()) == 1) {
+					 allowed = true;
+				 }
+			 }
+		 }
+		 return allowed;
+	 }
+	 
+	 public boolean checkForAttackConflict(Pair pair) { 
+		 for (int i = 0; i < backRangeArray.size(); i++) {
+			 int x = (-1 * (((Pair) backRangeArray.get(i)).getA() - 12)) + 12;
+			 int y = (-1 * (((Pair) backRangeArray.get(i)).getB() - 12)) + 12;
+			 if (!noConflictCheck(x, y, pair.getA(), pair.getB())) {
+				 if (relativePositionComparison(pair.getA(), pair.getB(), x, y) != 1) {
+					 backRangeArray.remove(i);
+					 return true;
+				 }
+			 }
+		 }
+		 return false;
+	 }
+	 
 	 public boolean checkForBackRangeConflict(Pair pair) { 
 		 for (int i = 0; i < backRangeArray.size(); i++) {
 			 int x = ((Pair) backRangeArray.get(i)).getA();
 			 int y = ((Pair) backRangeArray.get(i)).getB();
 			 if (!noConflictCheck(x, y, pair.getA(), pair.getB())) {
 				 backRangeArray.remove(i);
+				 return true;
+			 }
+		 }
+		 return false;
+	 }
+
+	 public boolean checkForRetributionConflict(Pair pair) { 
+		 for (int i = 0; i < retributionArray.size(); i++) {
+			 int x = ((Pair) retributionArray.get(i)).getA();
+			 int y = ((Pair) retributionArray.get(i)).getB();
+			 if (!noConflictCheck(x, y, pair.getA(), pair.getB())) {
+				 retributionArray.remove(i);
 				 return true;
 			 }
 		 }
@@ -307,10 +370,55 @@ public class CheckeredPane extends JLayeredPane {
 			 int y = ((Pair) attackArray.get(i)).getB();
 			 totalCost += genericMath(i, x, y);
 		 }
+		 for (int i = 0; i < backRangeArray.size(); i++) {
+			 int x = ((Pair) backRangeArray.get(i)).getA();
+			 int y = ((Pair) backRangeArray.get(i)).getB();
+			 totalCost -= (int) (genericMath(i, x, y) * 0.5);
+		 }
+		 for (int i = 0; i < forwardRangeArray.size(); i++) {
+			 int x = ((Pair) forwardRangeArray.get(i)).getA();
+			 int y = ((Pair) forwardRangeArray.get(i)).getB();
+			 totalCost += (int) (genericMath(i, x, y) * 1.5);
+		 }
+		 for (int i = 0; i < retributionArray.size(); i++) {
+			 int x = ((Pair) retributionArray.get(i)).getA();
+			 int y = ((Pair) retributionArray.get(i)).getB();
+			 totalCost += (int) (genericMath(i, x, y) * 0.75);
+		 }
+		 if (flagArray.size() > 0) {
+			 if (flagArray.get(0)) { //t
+				 totalCost = (int) (totalCost * 1.25);
+			 }
+			 if (flagArray.get(1)) { //s
+				 totalCost = (int) (totalCost * 1.5);
+			 }
+			 if (flagArray.get(2)) { //i
+				 totalCost = (int) (totalCost * 2);
+			 }
+			 if (flagArray.get(3)) { //n
+				 totalCost = (int) (totalCost * 1.4);
+			 }
+			 if (flagArray.get(4)) { //r
+				 totalCost = (int) (totalCost * 2); //TODO
+			 }
+			 if (flagArray.get(5)) { //j
+				 totalCost = (int) (totalCost * 0.25) + 400000; //TODO
+			 }
+		 }
 		 costDisplay.setText("Cost: " + totalCost);
 		 costDisplay.setVisible(true);
 		 revalidate();
 		 repaint();
+	 }
+
+	 public int relativePositionComparison(int x1, int y1, int x2, int y2) {
+		 if ((Math.abs(x1 - 12) == Math.abs(x2 - 12)) && (Math.abs(y1 - 12) == Math.abs(y2 -12))) {
+			 return 0;
+		 }
+		 else if ((Math.abs(x1 - 12) >= Math.abs(x2 - 12)) && (Math.abs(y1 - 12) >= Math.abs(y2 - 12))) {
+			 return 1;
+		 }
+		 return -1;
 	 }
 	 
 	 public boolean noConflictCheck(int x1, int y1, int x2, int y2) { //n, s, e, w, ne, nw, se, sw/ 2-1/ 3-1/ 3-2/ 4-1/ 4-3/ 5-1/ 5-2/ 5-3/ 5-4
@@ -521,5 +629,91 @@ public class CheckeredPane extends JLayeredPane {
 	 public void setLight(Color color) {
 		 light = color;
 		 repaint();
+	 }
+	 
+	 public boolean save() throws IOException {
+		 File file = new File(BASE_RESOURCE_PATH + "InnerData\\Pieces.kg");
+		 int line;
+	     if (!file.exists()) {
+	       	try {
+				file.createNewFile();
+				FileWriter fileWriter = new FileWriter(BASE_RESOURCE_PATH + "InnerData\\Pieces.kg");
+				fileWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	    }
+	    LineNumberReader lineReader = new LineNumberReader(new FileReader(file));
+	    lineReader.skip(Long.MAX_VALUE);
+	    line = lineReader.getLineNumber();
+	    lineReader.close();
+	    if (line > 99999) {
+	    	//TODO error
+	    	return false;
+	    }
+	    else {
+	    	Object currentFileNameObject = JOptionPane.showInputDialog(this, "", "Name", JOptionPane.PLAIN_MESSAGE, null, null, "");
+			
+			if (currentFileNameObject == null) {
+				return false;
+			}
+			else {
+				name = (String) currentFileNameObject;
+			}
+		    writeFile(line);
+	    }
+		return true;
+	 }
+	 
+	 public void writeFile(int line) {
+			String lineString = String.format("%05d", line);
+			String flagString = "";
+			for (boolean flag : flagArray) {
+				if (flag) {
+					flagString += "1";
+				}
+				else {
+					flagString += "0";
+				}
+			}
+			String pFString = "";
+			for (String string : promotionFromArray) {
+				pFString += string;
+			}
+			String pTString = "";
+			for (String string : promotionToArray) {
+				pFString += string;
+			}
+			List<String> lines = Arrays.asList(
+				//ID
+				"\t" + lineString + ";" +
+				//Cost
+				"\t" + totalCost + ";" +
+				//Name
+				"\t" + name + ";" +
+				//Move
+				"\t" + movementArray.toText() + ";" +
+				//Attack
+				"\t" + attackArray.toText() + ";" +
+				//BRange
+				"\t" + backRangeArray.toText() + ";" +
+				//FRange
+				"\t" + forwardRangeArray.toText() + ";" +
+				//Retribution
+				"\t" + retributionArray.toText() + ";" +
+				//Flags
+				"\t" + flagString + ";" +
+				//PromotionFrom
+				"\t" + pFString + ";" +
+				//PromotionTo
+				"\t" + pTString + ";" +
+				//IconString
+				"\t" + iconName + ";" + "\t"
+				); //TODO finish saving all things
+			try {
+			    Files.write(Paths.get(BASE_RESOURCE_PATH + "InnerData\\Pieces.kg"), lines, StandardOpenOption.APPEND);
+			} catch (IOException e) {
+			    e.printStackTrace();
+			}
 	 }
 }

@@ -9,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -572,7 +573,7 @@ public class Board extends JFrame implements KeyListener {
 					Piece newPiece = piecePage.getPieces().get(mIndex - 3);
 					String newName = newPiece.getName();
 					menuLabel.setText("- " + newName);
-				}
+				} //TODO
 				mIndex++;
 				menuLabel.setVisible(true);
 			}
@@ -635,8 +636,14 @@ public class Board extends JFrame implements KeyListener {
 			break;
 		case 3213: //Piecemaker - Create - Save
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
-			
-			playSound(BASE_RESOURCE_PATH + "Sounds\\Save.wav");
+			try {
+				if (mainPanel.save()) {
+					
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			//TODO
 			break;
 		case 3214: //Piecemaker - Create - Back

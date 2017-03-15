@@ -19,9 +19,12 @@ public class Piece {
 	//RA:8-1; RI:8-2; RQ:8-3; SA:8-4; SI:8-5; SQ:8-6; TA:8-7; TI:9-1; TQ:9-2; UA:9-3; UI:9-4; UQ:9-5; VA:9-6; VI:9-7; VQ:9-8;
 	//WA:10-1; WI:10-2; WQ:10-3; XA:10-4; XI:10-5; XQ:10-6; YA:10-7; YI:10-8; YQ:10-9
 	private String attack = ""; //q:-, r:+, z:{}
-	private String flag = ""; //t, s, i, n, r, j
-	private ArrayList<String> promotionTo = new ArrayList<String>();
+	private String backRange = ""; 
+	private String forwardRange = ""; 
+	private String retribution = ""; 
+	private String flags = ""; //t, s, i, n, r, j
 	private ArrayList<String> promotionFrom = new ArrayList<String>();
+	private ArrayList<String> promotionTo = new ArrayList<String>();
 	private String iconString = "";
 	
 	public Piece(final String id) {
@@ -96,15 +99,24 @@ public class Piece {
 					attack = dataString;
 					break;
 				case 4:
-					flag = dataString;
+					backRange = dataString;
 					break;
 				case 5:
-					promotionTo = new ArrayList<String>(Arrays.asList(dataString.split("\\s*,\\s*")));
+					forwardRange = dataString;
 					break;
 				case 6:
-					promotionFrom = new ArrayList<String>(Arrays.asList(dataString.split("\\s*,\\s*")));
+					retribution = dataString;
 					break;
 				case 7:
+					flags = dataString;
+					break;
+				case 8:
+					promotionFrom = new ArrayList<String>(Arrays.asList(dataString.split("\\s*,\\s*")));
+					break;
+				case 9:
+					promotionTo = new ArrayList<String>(Arrays.asList(dataString.split("\\s*,\\s*")));
+					break;
+				case 10:
 					iconString = dataString;
 					break;
 				}
@@ -130,9 +142,21 @@ public class Piece {
 	public String getAttack() {
 		return attack;
 	}
+
+	public String getBackRange() {
+		return attack;
+	}
+	
+	public String getForwardRange() {
+		return attack;
+	}
+	
+	public String getRetribution() {
+		return attack;
+	}
 	
 	public String getFlag() {
-		return flag;
+		return flags;
 	}
 	
 	public ArrayList<String> getPromotionTo() {
