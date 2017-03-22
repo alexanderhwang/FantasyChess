@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -66,7 +67,7 @@ public class CheckeredPane extends JLayeredPane {
 	private PairArrayList forwardRangeArray = new PairArrayList(); //applies to position (consequent upgrade)
 	private PairArrayList retributionArray = new PairArrayList();
 	private PairArrayList errorArray = new PairArrayList();
-	private ArrayList<Boolean> flagArray = new ArrayList<Boolean>(); //t, s, i, n, r, j
+	private ArrayList<Boolean> flagArray = new ArrayList<Boolean>(Arrays.asList(false, false, false, false, false, false)); //t, s, i, n, r, j
 	private ArrayList<String> promotionFromArray = new ArrayList<String>();
 	private ArrayList<String> promotionToArray = new ArrayList<String>();
 	
@@ -282,11 +283,11 @@ public class CheckeredPane extends JLayeredPane {
 
 	 public void setFlags() {
 		 JPanel flags = new JPanel(); //t, s, i, n, r, j
-		 if (flagArray.size() != 6) {
+		 /*if (flagArray.size() != 6) {
 			 for (int i = 0; i < 6; i++) {
 				 flagArray.add(false);
 			 }
-		 }
+		 }*/
 		 flags.add(new JCheckBox("Transport", flagArray.get(0)));
 		 flags.add(new JCheckBox("Shield", flagArray.get(1)));
 		 flags.add(new JCheckBox("Invisible", flagArray.get(2)));
@@ -295,7 +296,7 @@ public class CheckeredPane extends JLayeredPane {
 		 flags.add(new JCheckBox("Joker", flagArray.get(5))); 
 		 JOptionPane.showConfirmDialog(null, flags, "Flags", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 		 for (int j = 0; j < flagArray.size(); j++) {
-			 flagArray.set(j, ((JCheckBox) flags.getComponent(j)).isSelected()); //TODO determine costs
+			 flagArray.set(j, ((JCheckBox) flags.getComponent(j)).isSelected());
 		 }
 		 for (int k = 0; k < flagIcons.size(); k++) {
 			 flagIcons.get(k).setVisible(flagArray.get(k));
@@ -679,10 +680,12 @@ public class CheckeredPane extends JLayeredPane {
 			String pFString = "";
 			for (String string : promotionFromArray) {
 				pFString += string;
+				pFString += " ";
 			}
 			String pTString = "";
 			for (String string : promotionToArray) {
-				pFString += string;
+				pTString += string;
+				pTString += " ";
 			}
 			List<String> lines = Arrays.asList(
 				//ID
@@ -716,4 +719,127 @@ public class CheckeredPane extends JLayeredPane {
 			    e.printStackTrace();
 			}
 	 }
+	 
+	public void readFile(int id) {
+		File file = new File(BASE_RESOURCE_PATH + "InnerData\\Pieces.kg");
+		String idString = String.format("%05d", id);
+		String line = "      ";
+		try {
+			BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+			while (!line.substring(1, 6).equals(idString)) {
+				line = bufferedReader.readLine();
+			}
+			if (line == "") {
+				line = "NOT FOUND";
+			}
+			else {
+				String lineClone = line;
+				int end = line.indexOf(";");
+				int progress = 0;
+				
+				while (progress < 11) {
+					
+					lineClone = lineClone.substring(end + 1);
+					end = lineClone.indexOf(";");
+					progress++;
+
+					int indexingValue = (end - 1) / 6;
+					switch (progress) {
+					case 1:
+						totalCost = Integer.parseInt(lineClone.substring(1, end));
+						break;
+					case 2:
+						name = lineClone.substring(1, end);
+						break;
+					case 3:
+						movementArray = new PairArrayList();
+						for (int d = 0; d < indexingValue; d++) {
+							int a = Integer.parseInt(lineClone.substring(1, 3));
+							int b = Integer.parseInt(lineClone.substring(4, 6));
+							movementArray.add(new Pair(a, b));
+							lineClone = lineClone.substring(6);
+							end -= 6;
+						}
+						break;
+					case 4:
+						attackArray = new PairArrayList();
+						for (int d = 0; d < indexingValue; d++) {
+							int a = Integer.parseInt(lineClone.substring(1, 3));
+							int b = Integer.parseInt(lineClone.substring(4, 6));
+							attackArray.add(new Pair(a, b));
+							lineClone = lineClone.substring(6);
+							end -= 6;
+						}
+						break;
+					case 5:
+						backRangeArray = new PairArrayList();
+						for (int d = 0; d < indexingValue; d++) {
+							int a = Integer.parseInt(lineClone.substring(1, 3));
+							int b = Integer.parseInt(lineClone.substring(4, 6));
+							backRangeArray.add(new Pair(a, b));
+							lineClone = lineClone.substring(6);
+							end -= 6;
+						}
+						break;
+					case 6:
+						forwardRangeArray = new PairArrayList();
+						for (int d = 0; d < indexingValue; d++) {
+							int a = Integer.parseInt(lineClone.substring(1, 3));
+							int b = Integer.parseInt(lineClone.substring(4, 6));
+							forwardRangeArray.add(new Pair(a, b));
+							lineClone = lineClone.substring(6);
+							end -= 6;
+						}
+						break;
+					case 7:
+						retributionArray = new PairArrayList();
+						for (int d = 0; d < indexingValue; d++) {
+							int a = Integer.parseInt(lineClone.substring(1, 3));
+							int b = Integer.parseInt(lineClone.substring(4, 6));
+							retributionArray.add(new Pair(a, b));
+							lineClone = lineClone.substring(6);
+							end -= 6;
+						}
+						break;
+					case 8:
+						for (int i = 0; i < 6; i++) {
+							if (lineClone.charAt(i + 1) == '1') {
+								flagArray.set(i, true);
+							}
+							else {
+								flagArray.set(i, false);
+							}
+						}
+						break;
+					case 9:
+						promotionFromArray = new ArrayList<String>();
+						for (int d = 0; d < (end - 1) / 6; d++) {
+							promotionFromArray.add(lineClone.substring(0, lineClone.indexOf(" ")));
+							lineClone = lineClone.substring(6);
+						}
+						break;
+					case 10:
+						promotionToArray = new ArrayList<String>();
+						for (int d = 0; d < (end - 1) / 6; d++) {
+							promotionToArray.add(lineClone.substring(0, lineClone.indexOf(" ")));
+							lineClone = lineClone.substring(6);
+						}
+						break;
+					case 11:
+						iconName = lineClone.substring(0, end - 1);
+						break;
+					}
+				}
+			}
+			bufferedReader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		for (int k = 0; k < flagIcons.size(); k++) {
+			flagIcons.get(k).setVisible(flagArray.get(k));
+		}
+		calculateCost();
+	}
 }

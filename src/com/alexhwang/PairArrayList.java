@@ -35,7 +35,9 @@ public class PairArrayList extends ArrayList {
 	public String toText() {
 		String returnText = "";
 		for (int i = 0; i < this.size(); i++) {
-			returnText += ((Pair) this.get(i)).getA() + "," + ((Pair) this.get(i)).getB() + " ";
+			String a = String.format("%02d", ((Pair) this.get(i)).getA());
+			String b = String.format("%02d", ((Pair) this.get(i)).getB());
+			returnText += a + "," + b + " ";
 		}
 		return returnText;
 	}

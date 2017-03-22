@@ -85,6 +85,7 @@ public class Board extends JFrame implements KeyListener {
 	private int menuTop = 1;
 	private int menuBottom = 4;
 	private PiecePage piecePage;
+	private int pieceListPage = 0;
 	private int pieceArraySize = 0;
 	private int mIndex = 0;
 	private int menuFlag = 0; //1: Piecemaker - Create - Base
@@ -530,7 +531,31 @@ public class Board extends JFrame implements KeyListener {
 		case 3117:
 		case 3118:
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			if (menuFlag == 1) { //Piecemaker - Create - Base
+				int fileId = (menuButton - 3103) + (pieceListPage * 16);
+				
+				menuButton = 3201;
+				menuTop = 3201;
+				menuBottom = 3214;
+				mainPanel.readFile(fileId);
+			}
+			else {
+				//TODO
+			}
+			for (JLabel menuLabel : menuArray31) {
+				menuLabel.setVisible(false);
+			}
+			if (menuFlag == 1) {
+				for (JLabel menuLabel : menuArray32) {
+					menuLabel.setVisible(true);
+				}
+				menuFlag = 0;
+			}
+			else {
+				//TODO
+			}
 			//choosePiece();
+			menuSet();
 			break;
 		case 3119: //Piecemaker - List - Back
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuBack.wav");
@@ -635,13 +660,13 @@ public class Board extends JFrame implements KeyListener {
 			//TODO
 			break;
 		case 3213: //Piecemaker - Create - Save
+			//TODO check for editing
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
 			try {
 				if (mainPanel.save()) {
 					
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			//TODO
