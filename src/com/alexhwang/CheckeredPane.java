@@ -44,7 +44,7 @@ public class CheckeredPane extends JLayeredPane {
 	private int arraySize = 0;
 	private int totalCost = 0;
 	private String name = "";
-	private String iconName = "";
+	private String iconName = "Dummy";
 	private Color dark = new Color(0, 0, 0, 32);
 	private Color light = new Color(232, 232, 232, 0);
 	private Color movement = new Color(0, 0, 255, 128);
@@ -53,6 +53,7 @@ public class CheckeredPane extends JLayeredPane {
 	private Color range = new Color(192, 192, 0, 192);
 	private Color retribution = new Color(0, 0, 0, 128);
 	private Color error = new Color(0, 255, 0, 255);
+	private JLabel icon = new JLabel(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\" + iconName + ".png"));
 	private JLabel flagTransport = new JLabel(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\FlagTransport.png"));
 	private JLabel flagShield = new JLabel(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\FlagShield.png"));
 	private JLabel flagInvisible = new JLabel(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\FlagInvisible.png"));
@@ -72,6 +73,10 @@ public class CheckeredPane extends JLayeredPane {
 	private ArrayList<String> promotionToArray = new ArrayList<String>();
 	
 	public CheckeredPane() {
+		this.setLayer(icon, 1);
+		this.add(icon);
+		icon.setBounds(TILE * 12, TILE * 12, TILE, TILE);
+		icon.setVisible(false);
 		for (int i = 0; i < flagIcons.size(); i++) {
 			this.setLayer(flagIcons.get(i), 1);
 			this.add(flagIcons.get(i));
@@ -277,8 +282,18 @@ public class CheckeredPane extends JLayeredPane {
 		 }
 		 totalCost = 0;
 		 costDisplay.setVisible(false);
+		 iconName = "Dummy";
+		 icon.setIcon(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\" + iconName + ".png"));
 		 revalidate();
 		 repaint();
+	 }
+	 
+	 public void hide() {
+		 icon.setVisible(false);
+	 }
+	 
+	 public void show() {
+		 icon.setVisible(true);
 	 }
 
 	 public void setFlags() {
@@ -359,6 +374,32 @@ public class CheckeredPane extends JLayeredPane {
 		 return false;
 	 }
 	 
+	 public boolean checkPromotionFrom(String check) {
+		 return (promotionFromArray.contains(check));
+	 }
+	 
+	 public boolean checkPromotionTo(String check) {
+		 return (promotionToArray.contains(check));
+	 }
+	 
+	 public boolean togglePromotionFrom(String id) {
+		 if (promotionFromArray.contains(id)) {
+			 promotionFromArray.remove(id);
+			 return true;
+		 }
+		 promotionFromArray.add(id);
+		 return false;
+	 }
+	 
+	 public boolean togglePromotionTo(String id) {
+		 if (promotionToArray.contains(id)) {
+			 promotionToArray.remove(id);
+			 return true;
+		 }
+		 promotionToArray.add(id);
+		 return false;
+	 }
+	 
 	 public void calculateCost() {
 		 totalCost = 0;
 		 for (int i = 0; i < movementArray.size(); i++) {
@@ -400,7 +441,7 @@ public class CheckeredPane extends JLayeredPane {
 				 totalCost = (int) (totalCost * 1.4);
 			 }
 			 if (flagArray.get(4)) { //r
-				 totalCost = (int) (totalCost * 2); //TODO
+				 totalCost = (int) (totalCost * 2); //TODO royalty
 			 }
 			 if (flagArray.get(5)) { //j
 				 totalCost = (int) (totalCost * 0.25) + 400000; //TODO
@@ -632,6 +673,18 @@ public class CheckeredPane extends JLayeredPane {
 		 repaint();
 	 }
 	 
+	 public boolean setIcon() {
+	     Object iconObject = JOptionPane.showInputDialog(this, "", "Icon", JOptionPane.PLAIN_MESSAGE, null, null, iconName);
+		 if (iconObject == null || iconName.equals((String) iconObject)) {
+			 return false;
+		 }
+		 else {
+			 iconName = (String) iconObject;
+			 icon.setIcon(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\" + iconName + ".png"));
+		 }
+		 return true;
+	 }
+	 
 	 public boolean save() throws IOException {
 		 File file = new File(BASE_RESOURCE_PATH + "InnerData\\Pieces.kg");
 		 int line;
@@ -813,20 +866,22 @@ public class CheckeredPane extends JLayeredPane {
 						break;
 					case 9:
 						promotionFromArray = new ArrayList<String>();
-						for (int d = 0; d < (end - 1) / 6; d++) {
-							promotionFromArray.add(lineClone.substring(0, lineClone.indexOf(" ")));
+						for (int d = 0; d < indexingValue; d++) {
+							promotionFromArray.add(lineClone.substring(1, 6));
 							lineClone = lineClone.substring(6);
+							end -= 6;
 						}
 						break;
 					case 10:
 						promotionToArray = new ArrayList<String>();
-						for (int d = 0; d < (end - 1) / 6; d++) {
-							promotionToArray.add(lineClone.substring(0, lineClone.indexOf(" ")));
+						for (int d = 0; d < indexingValue; d++) {
+							promotionToArray.add(lineClone.substring(1, 6));
 							lineClone = lineClone.substring(6);
+							end -= 6;
 						}
 						break;
 					case 11:
-						iconName = lineClone.substring(0, end - 1);
+						iconName = lineClone.substring(1, end);
 						break;
 					}
 				}
@@ -840,6 +895,7 @@ public class CheckeredPane extends JLayeredPane {
 		for (int k = 0; k < flagIcons.size(); k++) {
 			flagIcons.get(k).setVisible(flagArray.get(k));
 		}
+		icon.setIcon(new ImageIcon(BASE_RESOURCE_PATH + "Icons\\" + iconName + ".png"));
 		calculateCost();
 	}
 }

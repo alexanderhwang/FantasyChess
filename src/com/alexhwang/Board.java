@@ -79,7 +79,6 @@ public class Board extends JFrame implements KeyListener {
 	private final JLabel menu3214 = new JLabel("Back");
 	
 	private ArrayList<Piece> pieceArray = new ArrayList<Piece>();
-	private ArrayList<JLabel> pieceIconArray = new ArrayList<JLabel>();
 	private String icon = BASE_RESOURCE_PATH + "Icons\\Pawn.png"; //TODO change
 	private int menuButton = 1;
 	private int menuTop = 1;
@@ -88,7 +87,7 @@ public class Board extends JFrame implements KeyListener {
 	private int pieceListPage = 0;
 	private int pieceArraySize = 0;
 	private int mIndex = 0;
-	private int menuFlag = 0; //1: Piecemaker - Create - Base
+	private int menuFlag = 0; //1: Piecemaker - Create - Base, 2: Piecemaker - Create - PromotionFrom, 3: Piecemaker - Create - PromotionTo
 	private int creationFlag = 0; //1: Movement, 2: Attack, 3: Both, 4: Back Range, 5: Forward Range, 6: Retribution
 	
     public Board() {
@@ -347,8 +346,12 @@ public class Board extends JFrame implements KeyListener {
     			}
     		}
     	}
-    	else if (menuButton >= 3101 && menuButton <= 3119) {
+    	else if (menuButton >= 3101 && menuButton <= 3119) { 
     		for (int i = 1; i < menuArray31.size(); i++) {
+    			int fileId = (i - 3) + (pieceListPage * 16);
+    			String idString = String.format("%05d", fileId);
+    			//System.out.println(idString);
+    			
     			if (i == menuButton - 3100) {
     				menuArray31.get(i).setFont(new Font("Arial", Font.BOLD, 15));
     				menuArray31.get(i).setForeground(Color.BLACK);
@@ -356,6 +359,14 @@ public class Board extends JFrame implements KeyListener {
     			else {
     				menuArray31.get(i).setFont(new Font("Arial", Font.PLAIN, 15));
     				menuArray31.get(i).setForeground(Color.GRAY);
+    			}
+    			if (i > 2 && i <= 18) {
+        			if (menuFlag == 2 && mainPanel.checkPromotionFrom(idString)) { //PromotionFrom
+            			menuArray31.get(i).setForeground(new Color(0, 128, 255));
+            		}
+            		if (menuFlag == 3 && mainPanel.checkPromotionTo(idString)) { //PromotionTo
+            			menuArray31.get(i).setForeground(new Color(255, 0, 128));
+            		}
     			}
     		}
     	}
@@ -478,17 +489,13 @@ public class Board extends JFrame implements KeyListener {
 			}
 			pieceArraySize = pieceArray.size();
 			pieceArray.add(new Piece("00000"));
-    		pieceIconArray.add(new JLabel(new ImageIcon(pieceArray.get(pieceArraySize).getIconPath())));
-	    	mainPanel.setLayer(pieceIconArray.get(pieceArraySize), 1);
-    		mainPanel.add(pieceIconArray.get(pieceArraySize));
-    		pieceIconArray.get(pieceArraySize).setBounds(TILE * 12, TILE * 12, TILE, TILE);
+			mainPanel.show();
 			creationFlag = 3;
 			mainPanel.colorSquare(3, TILE * 12, TILE * 12);
 			creationFlag = 0;
 			for (JLabel menuLabel : menuArray3) {
 				menuLabel.setVisible(false);
 			}
-			//TODO 
 			menuSet();
 			break;
 		case 33: //Piecemaker - Back
@@ -530,58 +537,69 @@ public class Board extends JFrame implements KeyListener {
 		case 3116:
 		case 3117:
 		case 3118:
-			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			int fileId = (menuButton - 3103) + (pieceListPage * 16);
 			if (menuFlag == 1) { //Piecemaker - Create - Base
-				int fileId = (menuButton - 3103) + (pieceListPage * 16);
-				
+				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
 				menuButton = 3201;
 				menuTop = 3201;
 				menuBottom = 3214;
 				mainPanel.readFile(fileId);
-			}
-			else {
-				//TODO
-			}
-			for (JLabel menuLabel : menuArray31) {
-				menuLabel.setVisible(false);
-			}
-			if (menuFlag == 1) {
+				for (JLabel menuLabel : menuArray31) {
+					menuLabel.setVisible(false);
+				}
 				for (JLabel menuLabel : menuArray32) {
 					menuLabel.setVisible(true);
 				}
 				menuFlag = 0;
 			}
+			else if (menuFlag == 2) { //Piecemaker - Create - PromotionFrom
+    			String idString = String.format("%05d", fileId);
+				if (mainPanel.togglePromotionFrom(idString)) {
+					playSound(BASE_RESOURCE_PATH + "Sounds\\MenuBack.wav");
+				}
+				else {
+					playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+				}
+			}
+			else if (menuFlag == 3) { //Piecemaker - Create - PromotionTo
+    			String idString = String.format("%05d", fileId);
+				if (mainPanel.togglePromotionTo(idString)) {
+					playSound(BASE_RESOURCE_PATH + "Sounds\\MenuBack.wav");
+				}
+				else {
+					playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+				}
+			}
 			else {
-				//TODO
+				//TODO choosePiece
 			}
 			//choosePiece();
 			menuSet();
 			break;
 		case 3119: //Piecemaker - List - Back
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuBack.wav");
-			if (menuFlag == 1) {
+			if (menuFlag >= 1 && menuFlag <= 3) {
 				menuButton = 3201;
+				if (menuFlag > 1) {
+					menuButton = 3208 + menuFlag;
+				}
 				menuTop = 3201;
 				menuBottom = 3214;
-			}
-			else {
-				menuButton = 31;
-				menuTop = 31;
-				menuBottom = 33;
-			}
-			for (JLabel menuLabel : menuArray31) {
-				menuLabel.setVisible(false);
-			}
-			if (menuFlag == 1) {
 				for (JLabel menuLabel : menuArray32) {
 					menuLabel.setVisible(true);
 				}
 				menuFlag = 0;
 			}
 			else {
+				menuButton = 31;
+				menuTop = 31;
+				menuBottom = 33;
 				for (JLabel menuLabel : menuArray3) {
 					menuLabel.setVisible(true);
 				}
+			}
+			for (JLabel menuLabel : menuArray31) {
+				menuLabel.setVisible(false);
 			}
 			menuSet();
 			break;
@@ -589,7 +607,7 @@ public class Board extends JFrame implements KeyListener {
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
 			menuFlag = 1;
 			menuButton = 3119;
-			menuTop = 3111;
+			menuTop = 3101;
 			menuBottom = 3119;
 			piecePage = new PiecePage(0, 15);
 			mIndex = 0;
@@ -598,7 +616,7 @@ public class Board extends JFrame implements KeyListener {
 					Piece newPiece = piecePage.getPieces().get(mIndex - 3);
 					String newName = newPiece.getName();
 					menuLabel.setText("- " + newName);
-				} //TODO
+				} 
 				mIndex++;
 				menuLabel.setVisible(true);
 			}
@@ -650,14 +668,58 @@ public class Board extends JFrame implements KeyListener {
 			mainPanel.setFlags();
 			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
 			break;
-		case 3210: //Piecemaker - Create - Promotion To
-			//TODO
+		case 3210: //Piecemaker - Create - Promotion From
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			menuFlag = 2;
+			menuButton = 3119;
+			menuTop = 3101;
+			menuBottom = 3119;
+			piecePage = new PiecePage(0, 15);
+			mIndex = 0;
+			for (JLabel menuLabel : menuArray31) {
+				if (mIndex >= 3 && piecePage.getPieces().size() > mIndex - 3) {
+					Piece newPiece = piecePage.getPieces().get(mIndex - 3);
+					String newName = newPiece.getName();
+					menuLabel.setText("- " + newName);
+				}
+				mIndex++;
+				menuLabel.setVisible(true);
+			}
+			for (JLabel menuLabel : menuArray32) {
+				menuLabel.setVisible(false);
+			}
+			menuSet();
 			break;
-		case 3211: //Piecemaker - Create - Promotion From
-			//TODO
+		case 3211: //Piecemaker - Create - Promotion To
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			menuFlag = 3;
+			menuButton = 3119;
+			menuTop = 3101;
+			menuBottom = 3119;
+			piecePage = new PiecePage(0, 15);
+			mIndex = 0;
+			for (JLabel menuLabel : menuArray31) {
+				if (mIndex >= 3 && piecePage.getPieces().size() > mIndex - 3) {
+					Piece newPiece = piecePage.getPieces().get(mIndex - 3);
+					String newName = newPiece.getName();
+					menuLabel.setText("- " + newName);
+				}
+				mIndex++;
+				menuLabel.setVisible(true);
+			}
+			for (JLabel menuLabel : menuArray32) {
+				menuLabel.setVisible(false);
+			}
+			menuSet();
 			break;
 		case 3212: //Piecemaker - Create - Icon
-			//TODO
+			playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			if (mainPanel.setIcon()) {
+				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuSelect.wav");
+			}
+			else {
+				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuBack.wav");
+			}
 			break;
 		case 3213: //Piecemaker - Create - Save
 			//TODO check for editing
@@ -680,10 +742,9 @@ public class Board extends JFrame implements KeyListener {
 			menuTop = 31;
 			menuBottom = 33;
 			pieceArraySize = pieceArray.size() - 1;
-	    	mainPanel.remove(pieceIconArray.get(pieceArraySize));
+			mainPanel.hide();
 	    	mainPanel.repaint();
 			pieceArray.remove(pieceArraySize);
-    		pieceIconArray.remove(pieceArraySize);
 			for (JLabel menuLabel : menuArray32) {
 				menuLabel.setVisible(false);
 			}
@@ -713,6 +774,7 @@ public class Board extends JFrame implements KeyListener {
 			}
 			else if (k.getKeyCode() == KeyEvent.VK_SPACE || k.getKeyCode() == KeyEvent.VK_ENTER) {
 				menuPress(); 
+				menuSet();
 			}
 		}
 	}
