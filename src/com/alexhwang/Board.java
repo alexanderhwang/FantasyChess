@@ -406,6 +406,9 @@ public class Board extends JFrame implements KeyListener {
     			menuButton = menuTop;
     		}
     	}
+    	if (menuFlag == 0 && menuButton >= 3103 && menuButton <= 3118) {
+    		menuPress();
+    	}
     	menuSet();
     }
     
@@ -571,9 +574,9 @@ public class Board extends JFrame implements KeyListener {
 				}
 			}
 			else {
-				//TODO choosePiece
+				mainPanel.readFile(fileId);
+				mainPanel.show();
 			}
-			//choosePiece();
 			menuSet();
 			break;
 		case 3119: //Piecemaker - List - Back
@@ -594,6 +597,9 @@ public class Board extends JFrame implements KeyListener {
 				menuButton = 31;
 				menuTop = 31;
 				menuBottom = 33;
+				mainPanel.clear();
+				mainPanel.hide();
+		    	mainPanel.repaint();
 				for (JLabel menuLabel : menuArray3) {
 					menuLabel.setVisible(true);
 				}

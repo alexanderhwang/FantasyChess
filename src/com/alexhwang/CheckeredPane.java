@@ -280,6 +280,8 @@ public class CheckeredPane extends JLayeredPane {
 		 for (int k = 0; k < flagIcons.size(); k++) {
 			 flagIcons.get(k).setVisible(false);
 		 }
+		 promotionFromArray = new ArrayList<String>();
+		 promotionToArray = new ArrayList<String>();
 		 totalCost = 0;
 		 costDisplay.setVisible(false);
 		 iconName = "Dummy";
@@ -675,7 +677,7 @@ public class CheckeredPane extends JLayeredPane {
 	 
 	 public boolean setIcon() {
 	     Object iconObject = JOptionPane.showInputDialog(this, "", "Icon", JOptionPane.PLAIN_MESSAGE, null, null, iconName);
-		 if (iconObject == null || iconName.equals((String) iconObject)) {
+		 if (iconObject == null || iconName.equals((String) iconObject) || ((String) iconObject).length() == 0) {
 			 return false;
 		 }
 		 else {
@@ -708,7 +710,7 @@ public class CheckeredPane extends JLayeredPane {
 	    else {
 	    	Object currentFileNameObject = JOptionPane.showInputDialog(this, "", "Name", JOptionPane.PLAIN_MESSAGE, null, null, "");
 			
-			if (currentFileNameObject == null) {
+			if (currentFileNameObject == null || ((String) currentFileNameObject).length() == 0) {
 				return false;
 			}
 			else {
@@ -739,6 +741,9 @@ public class CheckeredPane extends JLayeredPane {
 			for (String string : promotionToArray) {
 				pTString += string;
 				pTString += " ";
+			}
+			if (iconName.length() == 0) {
+				iconName = "Dummy";
 			}
 			List<String> lines = Arrays.asList(
 				//ID
@@ -771,6 +776,15 @@ public class CheckeredPane extends JLayeredPane {
 			} catch (IOException e) {
 			    e.printStackTrace();
 			}
+			//TODO revise promotion from/to
+			for (String string : promotionFromArray) {
+				int stringVal = Integer.parseInt(string);
+				System.out.println(stringVal);
+			}
+			for (String string : promotionToArray) {
+				int stringVal = Integer.parseInt(string);
+				System.out.println(stringVal);
+			}
 	 }
 	 
 	public void readFile(int id) {
@@ -779,13 +793,15 @@ public class CheckeredPane extends JLayeredPane {
 		String line = "      ";
 		try {
 			BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-			while (!line.substring(1, 6).equals(idString)) {
-				line = bufferedReader.readLine();
+			try {
+				while (!line.substring(1, 6).equals(idString)) {
+					line = bufferedReader.readLine();
+				}
 			}
-			if (line == "") {
-				line = "NOT FOUND";
+			catch (NullPointerException e){
+				line = "	?????;	0;	;	12,12 ;	12,12 ;	;	;	;	000000;	;	;	Dummy;	";
 			}
-			else {
+			
 				String lineClone = line;
 				int end = line.indexOf(";");
 				int progress = 0;
@@ -885,7 +901,7 @@ public class CheckeredPane extends JLayeredPane {
 						break;
 					}
 				}
-			}
+				
 			bufferedReader.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
