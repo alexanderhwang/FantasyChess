@@ -77,6 +77,22 @@ public class Board extends JFrame implements KeyListener {
 	private final JLabel menu3212 = new JLabel("Icon");
 	private final JLabel menu3213 = new JLabel("Save");
 	private final JLabel menu3214 = new JLabel("Back");
+	private final ArrayList<JLabel> menuArray32a = new ArrayList<JLabel>();
+	private final JLabel menu3200a = new JLabel("Edit");
+	private final JLabel menu3201a = new JLabel("Base");
+	private final JLabel menu3202a = new JLabel("Clear");
+	private final JLabel menu3203a = new JLabel("Set Movement");
+	private final JLabel menu3204a = new JLabel("Set Attack");
+	private final JLabel menu3205a = new JLabel("Set Both");
+	private final JLabel menu3206a = new JLabel("Set Back Range");
+	private final JLabel menu3207a = new JLabel("Set Forward Range");
+	private final JLabel menu3208a = new JLabel("Set Retribution");
+	private final JLabel menu3209a = new JLabel("Flags");
+	private final JLabel menu3210a = new JLabel("Promotion From");
+	private final JLabel menu3211a = new JLabel("Promotion To");
+	private final JLabel menu3212a = new JLabel("Icon");
+	private final JLabel menu3213a = new JLabel("Save");
+	private final JLabel menu3214a = new JLabel("Back");
 	
 	private ArrayList<Piece> pieceArray = new ArrayList<Piece>();
 	private String icon = BASE_RESOURCE_PATH + "Icons\\Pawn.png"; //TODO change
@@ -87,6 +103,7 @@ public class Board extends JFrame implements KeyListener {
 	private int pieceListPage = 0;
 	private int pieceArraySize = 0;
 	private int mIndex = 0;
+	private boolean creator = true;
 	private int menuFlag = 0; //1: Piecemaker - Create - Base, 2: Piecemaker - Create - PromotionFrom, 3: Piecemaker - Create - PromotionTo
 	private int creationFlag = 0; //1: Movement, 2: Attack, 3: Both, 4: Back Range, 5: Forward Range, 6: Retribution
 	
@@ -165,6 +182,24 @@ public class Board extends JFrame implements KeyListener {
     		menuPanel.setLayer(menuArray32.get(i), 1);
     		menuPanel.add(menuArray32.get(i));
     	}
+    	menuArray32a.addAll(Arrays.asList(menu3200a, menu3201a, menu3202a, menu3203a, menu3204a, menu3205a, menu3206a, menu3207a, menu3208a, menu3209a, 
+    			menu3210a, menu3211a, menu3212a, menu3213a, menu3214a));
+    	for (int i = 0; i < menuArray32a.size(); i++) {
+    		if (i == 0) {
+    			menuArray32a.get(i).setBounds(10, 15 + i * 40, 140, 25);
+    			menuArray32a.get(i).setFont(new Font("Arial", Font.BOLD, 18));
+    			menuArray32a.get(i).setForeground(Color.BLACK);
+    		}
+    		else
+    		{
+    			menuArray32a.get(i).setBounds(10, 15 + i * 40, 140, 25);
+    			menuArray32a.get(i).setFont(new Font("Arial", Font.BOLD, 15));
+    			menuArray32a.get(i).setForeground(Color.GRAY);
+    		}
+    		menuArray32a.get(i).setVisible(false);
+    		menuPanel.setLayer(menuArray32a.get(i), 1);
+    		menuPanel.add(menuArray32a.get(i));
+    	}
     	
     	mainPanel.addMouseListener(new MegaMouseAdapter(mainPanel) {
     		/*public void mouseClicked(MouseEvent c) {
@@ -181,6 +216,12 @@ public class Board extends JFrame implements KeyListener {
     			if (creationFlag != 0) { //Piecemaker
         			int mouseX = c.getX();
         			int mouseY = c.getY();
+        			if (menuFlag == 0 && menuButton >= 3103 && menuButton <= 3118 && mouseX / 32 == 12 && mouseY / 32 == 12 && mainPanel.checkValidity()) {
+        				creator = false;
+        				menuButton = 32;
+        				menuPress();
+        				//TODO enforce editing
+        			}
         			if (mouseX > 2 * TILE && mouseX < 23 * TILE && mouseY > 2 * TILE && mouseY < 23 * TILE && 
         					!(mouseX / 32 == 12 && mouseY / 32 == 12)) {
              			if (c.getButton() == MouseEvent.BUTTON1) {
@@ -260,7 +301,27 @@ public class Board extends JFrame implements KeyListener {
     		menuArray32.get(i).addMouseListener(new MegaMouseAdapter(3200 + i) {
     	    	public void mousePressed(MouseEvent c) {
     	    		int buttonIndex = getSavedValue();
-    	    		if (menuButton >= 3201 && menuButton <= 3214) {
+    	    		if (menuButton >= 3201 && menuButton <= 3214 && creator) {
+    	    			/*if (menuButton == buttonIndex) {
+    	    				menuPress();
+    	    			}
+    	    			else {
+    	    				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
+    	        			menuButton = buttonIndex;
+    	    			}*/
+    	    			menuButton = buttonIndex;
+    	    			menuPress();
+    		   			menuSet();
+    	    		}
+    	    	}
+    	    });
+    	}
+
+    	for (int i = 1; i < menuArray32a.size(); i++) {
+    		menuArray32a.get(i).addMouseListener(new MegaMouseAdapter(3200 + i) {
+    	    	public void mousePressed(MouseEvent c) {
+    	    		int buttonIndex = getSavedValue();
+    	    		if (menuButton >= 3201 && menuButton <= 3214 && !creator) {
     	    			/*if (menuButton == buttonIndex) {
     	    				menuPress();
     	    			}
@@ -371,18 +432,35 @@ public class Board extends JFrame implements KeyListener {
     		}
     	}
     	else if (menuButton >= 3201 && menuButton <= 3214) {
-    		for (int i = 1; i < menuArray32.size(); i++) {
-    			if (i == menuButton - 3200) {
-    				menuArray32.get(i).setFont(new Font("Arial", Font.BOLD, 15));
-    				menuArray32.get(i).setForeground(Color.BLACK);
-    			}
-    			else {
-    				menuArray32.get(i).setFont(new Font("Arial", Font.PLAIN, 15));
-    				menuArray32.get(i).setForeground(Color.GRAY);
-    			}
-    			if (creationFlag != 0 && i == creationFlag + 2) {
-    				menuArray32.get(i).setForeground(new Color(0, 128, 64));
-    			}
+    		if (creator) {
+        		for (int i = 1; i < menuArray32.size(); i++) {
+        			if (i == menuButton - 3200) {
+        				menuArray32.get(i).setFont(new Font("Arial", Font.BOLD, 15));
+        				menuArray32.get(i).setForeground(Color.BLACK);
+        			}
+        			else {
+        				menuArray32.get(i).setFont(new Font("Arial", Font.PLAIN, 15));
+        				menuArray32.get(i).setForeground(Color.GRAY);
+        			}
+        			if (creationFlag != 0 && i == creationFlag + 2) {
+        				menuArray32.get(i).setForeground(new Color(0, 128, 64));
+        			}
+        		}
+    		}
+    		else {
+        		for (int i = 1; i < menuArray32a.size(); i++) {
+        			if (i == menuButton - 3200) {
+        				menuArray32a.get(i).setFont(new Font("Arial", Font.BOLD, 15));
+        				menuArray32a.get(i).setForeground(Color.BLACK);
+        			}
+        			else {
+        				menuArray32a.get(i).setFont(new Font("Arial", Font.PLAIN, 15));
+        				menuArray32a.get(i).setForeground(Color.GRAY);
+        			}
+        			if (creationFlag != 0 && i == creationFlag + 2) {
+        				menuArray32a.get(i).setForeground(new Color(0, 128, 64));
+        			}
+        		}
     		}
     	}
     }
@@ -487,15 +565,24 @@ public class Board extends JFrame implements KeyListener {
 			menuButton = 3214;
 			menuTop = 3201;
 			menuBottom = 3214;
-			for (JLabel menuLabel : menuArray32) {
-				menuLabel.setVisible(true);
+			if (creator) {
+				for (JLabel menuLabel : menuArray32) {
+					menuLabel.setVisible(true);
+				}
+				pieceArraySize = pieceArray.size();
+				pieceArray.add(new Piece("00000"));
+				mainPanel.show();
+				creationFlag = 3;
+				mainPanel.colorSquare(3, TILE * 12, TILE * 12);
+				creationFlag = 0;
+				mainPanel.setCreator(true);
 			}
-			pieceArraySize = pieceArray.size();
-			pieceArray.add(new Piece("00000"));
-			mainPanel.show();
-			creationFlag = 3;
-			mainPanel.colorSquare(3, TILE * 12, TILE * 12);
-			creationFlag = 0;
+			else {
+				for (JLabel menuLabel : menuArray32a) {
+					menuLabel.setVisible(true);
+				}
+				mainPanel.setCreator(false);
+			}
 			for (JLabel menuLabel : menuArray3) {
 				menuLabel.setVisible(false);
 			}

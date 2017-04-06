@@ -37,12 +37,16 @@ public class CheckeredPane extends JLayeredPane {
 	static final int LIMIT = 800;
 	
 	//TODO variable for current piece if applicable
+	private boolean creator = true;
+	private boolean promoter = false;
+	private boolean valid = true;
 	private int offsetXL = 0;
 	private int offsetXR = 0;
 	private int offsetYU = 0;
 	private int offsetYD = 0;
 	private int arraySize = 0;
 	private int totalCost = 0;
+	private int currentId = 0;
 	private String name = "";
 	private String iconName = "Dummy";
 	private Color dark = new Color(0, 0, 0, 32);
@@ -296,6 +300,14 @@ public class CheckeredPane extends JLayeredPane {
 	 
 	 public void show() {
 		 icon.setVisible(true);
+	 }
+	 
+	 public boolean checkValidity() {
+		 return valid;
+	 }
+	 
+	 public void setCreator(boolean creator) {
+		 this.creator = creator;
 	 }
 
 	 public void setFlags() {
@@ -699,30 +711,34 @@ public class CheckeredPane extends JLayeredPane {
 				e.printStackTrace();
 			}
 	    }
-	    LineNumberReader lineReader = new LineNumberReader(new FileReader(file));
-	    lineReader.skip(Long.MAX_VALUE);
-	    line = lineReader.getLineNumber();
-	    lineReader.close();
-	    if (line > 99999) {
-	    	//TODO error
-	    	return false;
+	    if (creator) {
+		    LineNumberReader lineReader = new LineNumberReader(new FileReader(file));
+		    lineReader.skip(Long.MAX_VALUE);
+		    line = lineReader.getLineNumber();
+		    lineReader.close();
+		    if (line > 99999) {
+		    	//TODO error
+		    	return false;
+		    }
+		    else {
+		    	Object currentFileNameObject = JOptionPane.showInputDialog(this, "", "Name", JOptionPane.PLAIN_MESSAGE, null, null, "");
+				
+				if (currentFileNameObject == null || ((String) currentFileNameObject).length() == 0) {
+					return false;
+				}
+				else {
+					name = (String) currentFileNameObject;
+				}
+			    writeFile(line);
+		    }
+			return true;
 	    }
-	    else {
-	    	Object currentFileNameObject = JOptionPane.showInputDialog(this, "", "Name", JOptionPane.PLAIN_MESSAGE, null, null, "");
-			
-			if (currentFileNameObject == null || ((String) currentFileNameObject).length() == 0) {
-				return false;
-			}
-			else {
-				name = (String) currentFileNameObject;
-			}
-		    writeFile(line);
-	    }
-		return true;
+	    writeFile(currentId);
+	    return true;
 	 }
 	 
-	 public void writeFile(int line) {
-			String lineString = String.format("%05d", line);
+	 public void writeFile(int id) {
+			String idString = String.format("%05d", id);
 			String flagString = "";
 			for (boolean flag : flagArray) {
 				if (flag) {
@@ -747,7 +763,7 @@ public class CheckeredPane extends JLayeredPane {
 			}
 			List<String> lines = Arrays.asList(
 				//ID
-				"\t" + lineString + ";" +
+				"\t" + idString + ";" +
 				//Cost
 				"\t" + totalCost + ";" +
 				//Name
@@ -772,25 +788,75 @@ public class CheckeredPane extends JLayeredPane {
 				"\t" + iconName + ";" + "\t"
 				); //TODO finish saving all things
 			try {
-			    Files.write(Paths.get(BASE_RESOURCE_PATH + "InnerData\\Pieces.kg"), lines, StandardOpenOption.APPEND);
+				if (creator) {
+				    Files.write(Paths.get(BASE_RESOURCE_PATH + "InnerData\\Pieces.kg"), lines, StandardOpenOption.APPEND);
+				}
+				else {
+					overwriteLine(idString, lines.get(0));
+				}
 			} catch (IOException e) {
 			    e.printStackTrace();
 			}
 			//TODO revise promotion from/to
-			for (String string : promotionFromArray) {
-				int stringVal = Integer.parseInt(string);
-				System.out.println(stringVal);
+			if (!promoter) {
+				currentId = id;
+				int savedId = currentId;
+				boolean savedCreator = creator;
+				String savedIdString = String.format("%05d", savedId);
+				promoter = true;
+				creator = false;
+				ArrayList<String> savedPromotionFromArray = new ArrayList<String>();
+				ArrayList<String> savedPromotionToArray = new ArrayList<String>();
+				for (String string: promotionFromArray) {
+					savedPromotionFromArray.add(string);
+				}
+				for (String string: promotionToArray) {
+					savedPromotionToArray.add(string);
+				}
+				for (String string : savedPromotionFromArray) {
+					int stringVal = Integer.parseInt(string);
+					readFile(stringVal);
+					promotionFromArray.add(savedIdString); 
+					writeFile(stringVal);
+				}
+				for (String string : savedPromotionToArray) {
+					int stringVal = Integer.parseInt(string);
+					readFile(stringVal);
+					promotionToArray.add(savedIdString); 
+					writeFile(stringVal);
+				}
+				promoter = false;
+				creator = savedCreator;
+				readFile(savedId);
 			}
-			for (String string : promotionToArray) {
-				int stringVal = Integer.parseInt(string);
-				System.out.println(stringVal);
+	 }
+
+	 public void overwriteLine(String replaceId, String text) {
+		 try {
+			BufferedReader fileReader = new BufferedReader(new FileReader(BASE_RESOURCE_PATH + "InnerData\\Pieces.kg"));
+			String readLine = "";
+			List<String> lines = new ArrayList<String>();
+			while ((readLine = fileReader.readLine()) != null) {
+				if (readLine.length() > 5 && readLine.substring(1, 6).equals(replaceId)) {
+					readLine = text;
+				}
+				lines.add(readLine);
 			}
+		    Files.write(Paths.get(BASE_RESOURCE_PATH + "InnerData\\Pieces.kg"), lines);
+		    fileReader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	 }
 	 
 	public void readFile(int id) {
 		File file = new File(BASE_RESOURCE_PATH + "InnerData\\Pieces.kg");
 		String idString = String.format("%05d", id);
 		String line = "      ";
+		currentId = id;
+		valid = true;
 		try {
 			BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
 			try {
@@ -800,6 +866,7 @@ public class CheckeredPane extends JLayeredPane {
 			}
 			catch (NullPointerException e){
 				line = "	?????;	0;	;	12,12 ;	12,12 ;	;	;	;	000000;	;	;	Dummy;	";
+				valid = false;
 			}
 			
 				String lineClone = line;
