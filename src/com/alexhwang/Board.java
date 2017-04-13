@@ -216,12 +216,13 @@ public class Board extends JFrame implements KeyListener {
     			if (creationFlag != 0) { //Piecemaker
         			int mouseX = c.getX();
         			int mouseY = c.getY();
-        			if (menuFlag == 0 && menuButton >= 3103 && menuButton <= 3118 && mouseX / 32 == 12 && mouseY / 32 == 12 && mainPanel.checkValidity()) {
+        			/*if (menuFlag == 0 && menuButton >= 3103 && menuButton <= 3118 && mouseX / 32 == 12 && mouseY / 32 == 12 && mainPanel.checkValidity()) {
+        				System.out.println("Check");
         				creator = false;
         				menuButton = 32;
         				menuPress();
-        				//TODO enforce editing
-        			}
+        				//TODO enforce editing on center click?
+        			}*/
         			if (mouseX > 2 * TILE && mouseX < 23 * TILE && mouseY > 2 * TILE && mouseY < 23 * TILE && 
         					!(mouseX / 32 == 12 && mouseY / 32 == 12)) {
              			if (c.getButton() == MouseEvent.BUTTON1) {
@@ -282,15 +283,17 @@ public class Board extends JFrame implements KeyListener {
     	    	public void mousePressed(MouseEvent c) {
     	    		int buttonIndex = getSavedValue();
     	    		if (menuButton >= 3101 && menuButton <= 3119) {
-    	    			/*if (menuButton == buttonIndex) {
+    	    			if (menuButton == buttonIndex) {
     	    				menuPress();
     	    			}
     	    			else {
     	    				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
     	        			menuButton = buttonIndex;
-    	    			}*/
-    	    			menuButton = buttonIndex;
-    	    			menuPress();
+    	        			mainPanel.readFile((menuButton - 3103) + (pieceListPage * 16));
+    	        			mainPanel.show();
+    	    			}
+    	    			/*menuButton = buttonIndex;
+    	    			menuPress();*/
     		   			menuSet();
     	    		}
     	    	}
@@ -485,7 +488,9 @@ public class Board extends JFrame implements KeyListener {
     		}
     	}
     	if (menuFlag == 0 && menuButton >= 3103 && menuButton <= 3118) {
-    		menuPress();
+    		//menuPress();
+			mainPanel.readFile((menuButton - 3103) + (pieceListPage * 16));
+			mainPanel.show();
     	}
     	menuSet();
     }
@@ -661,8 +666,9 @@ public class Board extends JFrame implements KeyListener {
 				}
 			}
 			else {
-				mainPanel.readFile(fileId);
-				mainPanel.show();
+				/*mainPanel.readFile(fileId);
+				mainPanel.show();*/
+				//TODO change to edit
 			}
 			menuSet();
 			break;
