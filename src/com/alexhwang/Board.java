@@ -287,10 +287,15 @@ public class Board extends JFrame implements KeyListener {
     	    				menuPress();
     	    			}
     	    			else {
-    	    				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
-    	        			menuButton = buttonIndex;
-    	        			mainPanel.readFile((menuButton - 3103) + (pieceListPage * 16));
-    	        			mainPanel.show();
+		        			menuButton = buttonIndex;
+    	    	    		if (menuButton == 3101 || menuButton == 3102 || menuButton == 3119) {
+    		    				menuPress();
+    	    	    		}
+    	    	    		else {
+        	    				playSound(BASE_RESOURCE_PATH + "Sounds\\MenuMove.wav");
+        	        			mainPanel.readFile((menuButton - 3103) + (pieceListPage * 16));
+        	        			mainPanel.show();
+    	    	    		}
     	    			}
     	    			/*menuButton = buttonIndex;
     	    			menuPress();*/
